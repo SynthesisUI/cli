@@ -3,11 +3,11 @@ import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 
 /**
- * Registry padrão. Sobrescrevível por `--registry <url>` ou
- * `SYNTHESISUI_REGISTRY_URL` (ex.: http://localhost:3737 em dev).
- * O domínio canônico de produção é definido no Marco G.
+ * Registry padrão (domínio canônico de produção). Sobrescrevível por
+ * `--registry <url>` ou `SYNTHESISUI_REGISTRY_URL` (ex.: http://localhost:3000
+ * em dev).
  */
-export const DEFAULT_REGISTRY = "https://synthesisui.vercel.app";
+export const DEFAULT_REGISTRY = "https://www.synthesisui.com";
 
 export function resolveRegistry(flag?: string): string {
   const base = flag || process.env.SYNTHESISUI_REGISTRY_URL || DEFAULT_REGISTRY;
