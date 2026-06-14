@@ -1,12 +1,14 @@
 {
   "name": "synthesisui",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Traz design systems do SynthesisUI para qualquer projeto (materializa em _local/ds/).",
   "type": "module",
   "bin": {
     "synthesisui": "dist/index.js"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "keywords": [
     "synthesisui",
     "design-system",
