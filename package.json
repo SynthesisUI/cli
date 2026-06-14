@@ -4,15 +4,33 @@
   "description": "Traz design systems do SynthesisUI para qualquer projeto (materializa em _local/ds/).",
   "type": "module",
   "bin": {
-    "synthesisui": "./dist/index.js"
+    "synthesisui": "dist/index.js"
   },
   "files": ["dist"],
+  "keywords": [
+    "synthesisui",
+    "design-system",
+    "design-tokens",
+    "cli",
+    "claude-code"
+  ],
+  "homepage": "https://www.synthesisui.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SynthesisUI/synthesisui-hub.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/SynthesisUI/synthesisui-hub/issues"
+  },
+  "author": "SynthesisUI",
   "engines": {
     "node": ">=18"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
+    "prepublishOnly": "npm run build"
   },
   "license": "MIT"
 }
