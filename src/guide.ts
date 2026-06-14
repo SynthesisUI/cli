@@ -96,6 +96,16 @@ Artefatos disponíveis em \`_synthesisui/ds/${slug}/\`: ${artifactList}, \`desig
 
 ---
 
+## Onde testar/preview
+
+**Preview isolado, nunca em página real.** Ao criar ou demonstrar um componente, gere uma página de
+amostra dedicada — \`app/synthesisui-samples/<componente>/\` no Next.js App Router (ou a rota/pasta de
+samples equivalente na stack do projeto). **Não** aplique o componente a páginas reais de produção
+(home, layout, rotas existentes) a menos que seja explicitamente pedido. As amostras deixam revisar o
+componente no contexto do design system sem tocar no app.
+
+---
+
 ## Componentes prontos
 
 Cada recipe vira uma classe \`.ds-<nome>\` (dentro do escopo \`[data-ds="${slug}"]\`).

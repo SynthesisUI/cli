@@ -50,7 +50,9 @@ function renderRegion(installed: InstalledLock[]): string {
 Este projeto usa design system(s) trazido(s) pelo \`synthesisui\` CLI. **Ao criar ou editar
 componentes, leia o GUIDE.md do sistema e siga-o:** use apenas tokens semânticos
 (\`var(--ds-color-semantic-*)\`, \`--ds-spacing-*\`, etc.), escope a UI com \`data-ds="<slug>"\`,
-e reaproveite as classes \`.ds-*\`. Não use valores crus fora da escala do sistema.
+e reaproveite as classes \`.ds-*\`. Não use valores crus fora da escala do sistema. **Para revisar um
+componente, crie uma página de amostra isolada (ex.: \`app/synthesisui-samples/<componente>/\`) — não
+aplique a páginas reais de produção a menos que seja pedido.**
 
 ${lines}
 
