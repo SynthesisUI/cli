@@ -9,7 +9,7 @@ const HELP = `synthesisui — traz design systems do SynthesisUI para o seu proj
 Uso:
   synthesisui login [opções]           conecta o CLI à sua conta (device-flow)
   synthesisui list [opções]            lista os DSs publicados
-  synthesisui add <slug> [opções]      materializa um DS em _local/ds/<slug>/
+  synthesisui add <slug> [opções]      materializa um DS em _synthesisui/ds/<slug>/
 
 Opções:
   --registry <url>   URL do registry (ou env SYNTHESISUI_REGISTRY_URL)

@@ -12,7 +12,7 @@ type AddOptions = {
 };
 
 /**
- * Materializa um DS publicado em `_local/ds/<slug>/` e atualiza o CLAUDE.md.
+ * Materializa um DS publicado em `_synthesisui/ds/<slug>/` e atualiza o CLAUDE.md.
  */
 export async function add(slug: string, opts: AddOptions): Promise<void> {
   const base = resolveRegistry(opts.registry);
@@ -21,7 +21,7 @@ export async function add(slug: string, opts: AddOptions): Promise<void> {
   console.log(`→ buscando "${slug}" em ${base} …`);
   const payload = await fetchDesignSystem(base, slug);
 
-  const targetDir = join(projectRoot, "_local", "ds", payload.slug);
+  const targetDir = join(projectRoot, "_synthesisui", "ds", payload.slug);
   await mkdir(targetDir, { recursive: true });
 
   // 1. artifacts compilados pelo servidor (tokens.css, e futuros theme.css…)
@@ -63,7 +63,7 @@ export async function add(slug: string, opts: AddOptions): Promise<void> {
     ".lock",
   ];
   console.log(
-    `✓ ${payload.name} v${payload.version} → _local/ds/${payload.slug}/`,
+    `✓ ${payload.name} v${payload.version} → _synthesisui/ds/${payload.slug}/`,
   );
   console.log(`  ${files.join(", ")}`);
   console.log(
@@ -72,8 +72,8 @@ export async function add(slug: string, opts: AddOptions): Promise<void> {
   console.log("");
   console.log("Próximos passos:");
   console.log(
-    `  • @import "_local/ds/${payload.slug}/tokens.css" no seu CSS global`,
+    `  • @import "_synthesisui/ds/${payload.slug}/tokens.css" no seu CSS global`,
   );
   console.log(`  • escope sua UI com data-ds="${payload.slug}"`);
-  console.log(`  • detalhes e regras em _local/ds/${payload.slug}/GUIDE.md`);
+  console.log(`  • detalhes e regras em _synthesisui/ds/${payload.slug}/GUIDE.md`);
 }

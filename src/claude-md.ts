@@ -10,9 +10,9 @@ type InstalledLock = {
   version: number;
 };
 
-/** Lê os DSs instalados a partir dos .lock em _local/ds/<slug>/. */
+/** Lê os DSs instalados a partir dos .lock em _synthesisui/ds/<slug>/. */
 async function readInstalled(projectRoot: string): Promise<InstalledLock[]> {
-  const dsDir = join(projectRoot, "_local", "ds");
+  const dsDir = join(projectRoot, "_synthesisui", "ds");
   let entries: string[] = [];
   try {
     const dirents = await readdir(dsDir, { withFileTypes: true });
@@ -41,7 +41,7 @@ function renderRegion(installed: InstalledLock[]): string {
   const lines = installed
     .map(
       (ds) =>
-        `- **${ds.name}** (\`${ds.slug}\`, v${ds.version}) — guia: \`_local/ds/${ds.slug}/GUIDE.md\``,
+        `- **${ds.name}** (\`${ds.slug}\`, v${ds.version}) — guia: \`_synthesisui/ds/${ds.slug}/GUIDE.md\``,
     )
     .join("\n");
 

@@ -1,7 +1,7 @@
 # synthesisui
 
 CLI para trazer design systems publicados no [SynthesisUI](https://www.synthesisui.com)
-para dentro de qualquer projeto. Materializa o sistema em `_local/ds/<slug>/` e injeta
+para dentro de qualquer projeto. Materializa o sistema em `_synthesisui/ds/<slug>/` e injeta
 um bloco gerenciado no `CLAUDE.md` da raiz, de forma que o Claude Code construa
 componentes seguindo o design system.
 
@@ -12,7 +12,7 @@ Sem instalar nada:
 ```bash
 npx synthesisui login        # conecta o CLI à sua conta (device-flow no browser)
 npx synthesisui list         # lista os design systems disponíveis
-npx synthesisui add <slug>   # traz um DS para _local/ds/<slug>/
+npx synthesisui add <slug>   # traz um DS para _synthesisui/ds/<slug>/
 ```
 
 Ou instale globalmente:
@@ -24,7 +24,7 @@ synthesisui add halogen
 
 ### O que o `add` materializa
 
-Em `_local/ds/<slug>/`:
+Em `_synthesisui/ds/<slug>/`:
 
 - `design-system.json` — a verdade canônica do design system
 - `tokens.css` — CSS custom properties escopadas por `data-ds`

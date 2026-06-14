@@ -55,7 +55,7 @@ ${meta.narrative}
 
 1. Importe os tokens uma vez no CSS global do projeto:
    \`\`\`css
-   @import "./_local/ds/${slug}/tokens.css";
+   @import "./_synthesisui/ds/${slug}/tokens.css";
    \`\`\`
    (ajuste o caminho relativo conforme a localização do seu CSS.)
 
@@ -74,7 +74,7 @@ ${
 `
     : ""
 }
-Artefatos disponíveis em \`_local/ds/${slug}/\`: ${artifactList}, \`design-system.json\` (verdade canônica), \`GUIDE.md\` (este arquivo).
+Artefatos disponíveis em \`_synthesisui/ds/${slug}/\`: ${artifactList}, \`design-system.json\` (verdade canônica), \`GUIDE.md\` (este arquivo).
 
 ---
 
