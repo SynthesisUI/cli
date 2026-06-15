@@ -13,11 +13,18 @@ export type RegistrySummary = {
 
 export type StyleBlock = Record<string, string>;
 
+export type ComponentPart = {
+  base: StyleBlock;
+  variants?: Record<string, Record<string, StyleBlock>>;
+  states?: Record<string, StyleBlock>;
+};
+
 export type ComponentRecipe = {
   description: string;
   base: StyleBlock;
   variants: Record<string, Record<string, StyleBlock>>;
   states?: Record<string, StyleBlock>;
+  parts?: Record<string, ComponentPart>;
   preview?: { kind: string; sampleText?: string };
 };
 

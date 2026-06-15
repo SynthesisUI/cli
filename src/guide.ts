@@ -1,10 +1,38 @@
-import type { RegistryPayload } from "./types.js";
+import type { ComponentRecipe, RegistryPayload } from "./types.js";
 
 const kebab = (v: string) =>
   v.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
 
 const list = (items: string[]) =>
   items.length ? items.map((i) => `\`${i}\``).join(", ") : "_(none)_";
+
+const dataAttrs = (variants: Record<string, Record<string, unknown>>) =>
+  Object.entries(variants).map(
+    ([axis, opts]) => `data-${kebab(axis)}="${Object.keys(opts).join("|")}"`,
+  );
+
+/** One entry per component: class, variant data-*, states, and multi-part anatomy. */
+function componentEntry(cname: string, recipe: ComponentRecipe): string {
+  const cls = `.ds-${kebab(cname)}`;
+  const axes = dataAttrs(recipe.variants).map((a) => `\`${a}\``);
+  const variantsText = axes.length ? ` — variants: ${axes.join(", ")}` : "";
+
+  const states = Object.keys(recipe.states ?? {});
+  const statesText = states.length ? `\n  states: ${list(states)}` : "";
+
+  const partEntries = Object.entries(recipe.parts ?? {});
+  let partsText = "";
+  if (partEntries.length) {
+    const items = partEntries.map(([pname, part]) => {
+      const pcls = `.ds-${kebab(cname)}-${kebab(pname)}`;
+      const paxes = dataAttrs(part.variants ?? {});
+      return paxes.length ? `\`${pcls}\` (${paxes.join(", ")})` : `\`${pcls}\``;
+    });
+    partsText = `\n  parts: ${items.join(", ")}`;
+  }
+
+  return `- **${cname}** (\`${cls}\`)${variantsText}\n  ${recipe.description}${partsText}${statesText}`;
+}
 
 /**
  * Builds GUIDE.md — instructions *for the agent* on how to build components
@@ -17,21 +45,19 @@ export function buildGuide(payload: RegistryPayload): string {
   const { meta, foundations, motion, components } = doc;
 
   const semanticRoles = Object.keys(foundations.color.semantic);
+  const weights = Object.keys(foundations.typography.weights);
   const hasAlt =
     foundations.color.semanticAlt &&
     Object.keys(foundations.color.semanticAlt).length > 0;
   const altScheme = meta.scheme === "light" ? "dark" : "light";
   const hasTailwind = "theme.css" in payload.artifacts;
+  const hasParts = Object.values(components).some(
+    (r) => r.parts && Object.keys(r.parts).length > 0,
+  );
 
-  const componentLines = Object.entries(components).map(([cname, recipe]) => {
-    const cls = `.ds-${kebab(cname)}`;
-    const axes = Object.entries(recipe.variants).map(([axis, opts]) => {
-      const options = Object.keys(opts);
-      return `\`data-${kebab(axis)}="${options.join("|")}"\``;
-    });
-    const variantsText = axes.length ? ` — variants: ${axes.join(", ")}` : "";
-    return `- **${cname}** (\`${cls}\`)${variantsText}\n  ${recipe.description}`;
-  });
+  const componentLines = Object.entries(components).map(([cname, recipe]) =>
+    componentEntry(cname, recipe),
+  );
 
   const artifactList = Object.keys(payload.artifacts)
     .map((f) => `\`${f}\``)
@@ -65,18 +91,24 @@ ${meta.narrative}
    <div data-ds="${slug}">…your UI here…</div>
    \`\`\`
    All \`--ds-*\` custom properties and \`.ds-*\` classes only apply inside that scope.
+   Applying \`data-ds="${slug}"\` at the app root (e.g. \`<body>\` or the root layout)
+   is the simplest choice — the whole app then wears the system.
 ${
   hasAlt
     ? `
 3. Light/dark: an ancestor with \`data-scheme="${altScheme}"\` switches the neutral roles to the opposite mode.
-   \`\`\`html
+   \`\`\`tsx
    <div data-scheme="${altScheme}"><div data-ds="${slug}">…</div></div>
+   \`\`\`
+   A theme toggle just adds/removes that attribute on the scope element:
+   \`\`\`tsx
+   root.toggleAttribute("data-scheme"); // present = ${altScheme}, absent = ${meta.scheme}
    \`\`\`
 `
     : ""
 }${
-    hasTailwind
-      ? `
+  hasTailwind
+    ? `
 ## Styling with Tailwind v4 (preferred in this project)
 
 Import \`theme.css\` after \`tailwindcss\` and \`tokens.css\`:
@@ -87,7 +119,7 @@ Import \`theme.css\` after \`tailwindcss\` and \`tokens.css\`:
 \`\`\`
 This maps the DS tokens onto Tailwind's theme, so inside \`[data-ds="${slug}"]\` you get utilities
 backed by the design system: \`bg-*\`/\`text-*\`/\`border-*\` (semantic colors), \`p-*\`/\`m-*\`/\`gap-*\`
-(spacing), \`rounded-*\`, \`shadow-*\`, \`font-*\`, \`ease-*\`.
+(spacing), \`rounded-*\`, \`shadow-*\`, \`font-*\` (families **and** weights), \`text-*\` (type scale), \`ease-*\`.
 
 **Prefer these utilities for layout and new composition** — they are this project's idiom and read
 far better than inline \`style\`. Reach for inline \`var(--ds-*)\` only when no utility fits.
@@ -104,7 +136,7 @@ far better than inline \`style\`. Reach for inline \`var(--ds-*)\` only when no 
 
 ---
 `
-      : ""
+    : ""
 }
 This is **v${version}**. The stable entrypoints at \`_synthesisui/ds/${slug}/\` (the
 \`tokens.css\`/\`theme.css\` re-exports, plus \`.lock\`) always point at the active version — import
@@ -114,14 +146,64 @@ those, not the versioned ones. The pinned files for this version — ${artifactL
 
 ---
 
+## Building with the system
+
+**This system is for building real product UI** — pages, layouts, dashboards, whole flows.
+Compose the \`.ds-*\` recipes (and their parts) together with the DS-backed utilities to assemble
+actual screens. There is **no "samples only" rule**: build the real app. An
+\`app/synthesisui-samples/<component>/\` page is a fine *optional* scratch space to eyeball a single
+component, but it is never required.
+
+### Layout & composition
+The system defines the scale; these are sensible defaults for spending it:
+- **Page gutter / container padding:** a large spacing step — ${list(
+    Object.keys(foundations.spacing).filter((k) => /xl/.test(k)),
+  )}.
+- **Section gaps:** \`lg\` (or the nearest large step). **Card/panel padding:** \`md\`.
+- **Field / tight gaps:** \`2xs\`/\`3xs\`.
+- The system imposes no content max-width — cap long-form/text columns yourself for readability.
+${
+  hasParts
+    ? `
+### Multi-part components
+Components that have **parts** compile to \`.ds-<name>-<part>\` classes you nest yourself; the exact
+part classes and their \`data-*\` are listed per component below. Example — a table:
+\`\`\`tsx
+<table className="ds-table">
+  <thead className="ds-table-head">
+    <tr>
+      <th className="ds-table-cell-head">Name</th>
+      <th className="ds-table-cell-head" data-align="end">Updated</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr className="ds-table-row">
+      <td className="ds-table-cell">Halogen</td>
+      <td className="ds-table-cell" data-align="end">2h ago</td>
+    </tr>
+  </tbody>
+</table>
+\`\`\`
+`
+    : ""
+}
+### Overlays & portals
+Dialogs, menus and toasts are often rendered through a portal at the end of \`<body>\` — **outside**
+your \`data-ds\` scope. Since \`.ds-*\`/\`--ds-*\` only resolve inside the scope, wrap any portalled UI
+in its own \`<div data-ds="${slug}"${hasAlt ? ` data-scheme="…"` : ""}>\`, or apply \`data-ds\` at the
+app root so everything (portals included) inherits it. Behavior (open/close, focus trap, positioning,
+keyboard) is yours to wire — the system ships the **looks**, not the JavaScript.
+
+---
+
 ## Rules (follow them when creating components)
 ${
   hasTailwind
     ? `
 - **Styling mechanism:** prefer Tailwind utilities backed by the DS (\`bg-primary\`, \`p-md\`,
-  \`font-display\`, …) for layout and new composition, and reuse the \`.ds-*\` recipes for components
-  the DS already covers. Use inline \`style\` with \`var(--ds-*)\` only as a last resort. The token
-  names below are the source vocabulary — every utility derives from them.`
+  \`font-display\`, \`font-medium\`, …) for layout and new composition, and reuse the \`.ds-*\` recipes
+  for components the DS already covers. Use inline \`style\` with \`var(--ds-*)\` only as a last resort.
+  The token names below are the source vocabulary — every utility derives from them.`
     : ""
 }
 - **Always use semantic tokens**, never raw values nor primitives directly.
@@ -132,7 +214,8 @@ ${
 - Radius → \`var(--ds-radius-<key>)\`: ${list(Object.keys(foundations.radius))}.
 - Shadow → \`var(--ds-shadow-<key>)\`: ${list(Object.keys(foundations.shadow))}.
 - Typography: families \`--ds-typography-families-{display,body,mono}\` (${foundations.typography.families.display}, ${foundations.typography.families.body}, ${foundations.typography.families.mono});
-  scale \`--ds-typography-scale-<key>-font-size\` etc.: ${list(Object.keys(foundations.typography.scale))}.
+  weights${hasTailwind ? " (utility: `font-<key>`)" : ""}: ${list(weights)};
+  scale \`--ds-typography-scale-<key>-font-size\`${hasTailwind ? " (utility: `text-<key>`)" : ""}: ${list(Object.keys(foundations.typography.scale))}.
 - Motion: durations \`--ds-motion-durations-<key>\` (${list(Object.keys(motion.durations))}) and
   easings \`--ds-motion-easings-<key>\` (${list(Object.keys(motion.easings))}).
 - When **creating a new component** the DS does not cover yet: compose it from these semantic
@@ -140,20 +223,11 @@ ${
 
 ---
 
-## Where to preview
-
-**Preview in isolation, never on a real page.** When creating or demoing a component, generate a
-dedicated sample page — \`app/synthesisui-samples/<component>/\` in the Next.js App Router (or the
-equivalent samples route/folder in the project's stack). **Do not** apply the component to real
-production pages (home, layout, existing routes) unless explicitly asked. Samples let you review the
-component in the context of the design system without touching the app.
-
----
-
 ## Ready-made components
 
-Each recipe becomes a \`.ds-<name>\` class (inside the \`[data-ds="${slug}"]\` scope).
-Variants are \`data-<axis>="<option>"\` attributes; states (hover/focus/active/disabled) ship in the CSS.
+Each recipe becomes a \`.ds-<name>\` class (inside the \`[data-ds="${slug}"]\` scope). Variants are
+\`data-<axis>="<option>"\` attributes; states (hover/focus/active/disabled) ship in the CSS;
+multi-part components expose \`.ds-<name>-<part>\` classes (listed under each).
 
 ${componentLines.join("\n\n")}
 
