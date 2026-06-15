@@ -7,7 +7,7 @@ const GRANT_TYPE = "urn:ietf:params:oauth:grant-type:device_code";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-/** Tenta abrir o browser no SO; silencioso se não der. */
+/** Tries to open the OS browser; silent if it fails. */
 function openBrowser(url: string) {
   const [cmd, args] =
     process.platform === "darwin"
@@ -23,7 +23,7 @@ function openBrowser(url: string) {
     child.on("error", () => {});
     child.unref();
   } catch {
-    // sem browser disponível — o usuário abre manualmente
+    // no browser available — the user opens it manually
   }
 }
 
@@ -36,7 +36,7 @@ type DeviceCode = {
   interval: number;
 };
 
-/** Device authorization (RFC 8628): abre o browser, espera a aprovação. */
+/** Device authorization (RFC 8628): opens the browser, waits for approval. */
 export async function login(opts: { registry?: string }): Promise<void> {
   const base = resolveRegistry(opts.registry);
 
@@ -48,23 +48,23 @@ export async function login(opts: { registry?: string }): Promise<void> {
 
   if (!codeRes || !codeRes.ok) {
     throw new RegistryError(
-      `Não consegui iniciar o login em ${base}` +
+      `Could not start login at ${base}` +
         (codeRes
           ? ` (HTTP ${codeRes.status}).`
-          : ". Confira a URL e a conexão."),
+          : ". Check the URL and your connection."),
     );
   }
   const code = (await codeRes.json()) as DeviceCode;
 
-  console.log("\nPara conectar o CLI à sua conta:");
-  console.log(`  1. abra: ${code.verification_uri}`);
-  console.log(`  2. confirme o código: ${code.user_code}\n`);
-  console.log("(tentando abrir o navegador…)");
+  console.log("\nTo connect the CLI to your account:");
+  console.log(`  1. open: ${code.verification_uri}`);
+  console.log(`  2. confirm the code: ${code.user_code}\n`);
+  console.log("(trying to open the browser…)");
   openBrowser(code.verification_uri_complete);
 
   let interval = (code.interval || 5) * 1000;
   const deadline = Date.now() + (code.expires_in || 900) * 1000;
-  process.stdout.write("aguardando aprovação");
+  process.stdout.write("waiting for approval");
 
   while (Date.now() < deadline) {
     await sleep(interval);
@@ -87,7 +87,7 @@ export async function login(opts: { registry?: string }): Promise<void> {
     if (tokenRes?.ok && typeof data.access_token === "string") {
       await writeToken(data.access_token, base);
       console.log(
-        "\n✓ Login concluído. Token salvo em ~/.synthesisui/credentials.json",
+        "\n✓ Login complete. Token saved to ~/.synthesisui/credentials.json",
       );
       return;
     }
@@ -99,10 +99,10 @@ export async function login(opts: { registry?: string }): Promise<void> {
       continue;
     }
     throw new RegistryError(
-      `\nLogin falhou: ${(data.error_description as string) ?? err ?? tokenRes?.status ?? "erro desconhecido"}`,
+      `\nLogin failed: ${(data.error_description as string) ?? err ?? tokenRes?.status ?? "unknown error"}`,
     );
   }
   throw new RegistryError(
-    "\nO código expirou antes da aprovação. Rode `synthesisui login` de novo.",
+    "\nThe code expired before approval. Run `synthesisui login` again.",
   );
 }

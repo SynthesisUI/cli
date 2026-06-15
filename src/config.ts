@@ -3,18 +3,18 @@ import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 
 /**
- * Registry padrão (domínio canônico de produção). Sobrescrevível por
- * `--registry <url>` ou `SYNTHESISUI_REGISTRY_URL` (ex.: http://localhost:3000
- * em dev).
+ * Default registry (canonical production domain). Overridable via
+ * `--registry <url>` or `SYNTHESISUI_REGISTRY_URL` (e.g. http://localhost:3000
+ * in dev).
  */
 export const DEFAULT_REGISTRY = "https://www.synthesisui.com";
 
 export function resolveRegistry(flag?: string): string {
   const base = flag || process.env.SYNTHESISUI_REGISTRY_URL || DEFAULT_REGISTRY;
-  return base.replace(/\/+$/, ""); // sem barra final
+  return base.replace(/\/+$/, ""); // no trailing slash
 }
 
-/** Onde o token do device-flow (passo 3) vive — por máquina, na home. */
+/** Where the device-flow token lives — per machine, in the home dir. */
 export const credentialsPath = join(
   homedir(),
   ".synthesisui",
@@ -22,8 +22,8 @@ export const credentialsPath = join(
 );
 
 /**
- * Lê o token salvo, se existir. Hoje opcional (portão aberto); o device-flow
- * (passo 3) é quem vai gravá-lo. Mandamos como Bearer quando presente.
+ * Reads the saved token, if any. Optional for now (open gate); the device-flow
+ * is what writes it. Sent as a Bearer header when present.
  */
 export async function readToken(): Promise<string | null> {
   try {
@@ -35,7 +35,7 @@ export async function readToken(): Promise<string | null> {
   }
 }
 
-/** Persiste o token do device-flow (chmod 600, dir só do usuário). */
+/** Persists the device-flow token (chmod 600, user-only dir). */
 export async function writeToken(
   token: string,
   registry: string,

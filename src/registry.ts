@@ -14,40 +14,46 @@ async function request(url: string): Promise<Response> {
     res = await fetch(url, { headers: await authHeaders() });
   } catch {
     throw new RegistryError(
-      `Não consegui falar com o registry em ${url}. ` +
-        `Confira a URL (--registry / SYNTHESISUI_REGISTRY_URL) e a conexão.`,
+      `Could not reach the registry at ${url}. ` +
+        `Check the URL (--registry / SYNTHESISUI_REGISTRY_URL) and your connection.`,
     );
   }
   return res;
 }
 
-/** Lista os design systems publicados disponíveis. */
+/** Lists the available published design systems. */
 export async function fetchList(base: string): Promise<RegistrySummary[]> {
   const res = await request(`${base}/api/registry/ds`);
   if (!res.ok) {
-    throw new RegistryError(`Registry respondeu ${res.status} ao listar.`);
+    throw new RegistryError(`Registry responded ${res.status} while listing.`);
   }
   const body = (await res.json()) as { designSystems: RegistrySummary[] };
   return body.designSystems ?? [];
 }
 
-/** Busca um DS publicado já compilado (document + artifacts). */
+/**
+ * Fetches a published DS already compiled (document + artifacts). Without
+ * `version` it returns the latest; with `version` it returns that one.
+ */
 export async function fetchDesignSystem(
   base: string,
   slug: string,
+  version?: number,
 ): Promise<RegistryPayload> {
-  const res = await request(
-    `${base}/api/registry/ds/${encodeURIComponent(slug)}`,
-  );
+  const url = new URL(`${base}/api/registry/ds/${encodeURIComponent(slug)}`);
+  if (version != null) url.searchParams.set("version", String(version));
+
+  const res = await request(url.toString());
   if (res.status === 404) {
     throw new RegistryError(
-      `Nenhum design system publicado com slug "${slug}". ` +
-        `Rode \`synthesisui list\` para ver os disponíveis.`,
+      `No design system published with slug "${slug}"${
+        version != null ? ` at version v${version}` : ""
+      }. Run \`synthesisui list\` to see what's available.`,
     );
   }
   if (!res.ok) {
     throw new RegistryError(
-      `Registry respondeu ${res.status} ao buscar "${slug}".`,
+      `Registry responded ${res.status} while fetching "${slug}".`,
     );
   }
   return (await res.json()) as RegistryPayload;

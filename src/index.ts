@@ -4,26 +4,28 @@ import { list } from "./commands/list.js";
 import { login } from "./commands/login.js";
 import { RegistryError } from "./registry.js";
 
-const HELP = `synthesisui — traz design systems do SynthesisUI para o seu projeto
+const HELP = `synthesisui — bring SynthesisUI design systems into your project
 
-Uso:
-  synthesisui login [opções]           conecta o CLI à sua conta (device-flow)
-  synthesisui list [opções]            lista os DSs publicados
-  synthesisui add <slug> [opções]      materializa um DS em _synthesisui/ds/<slug>/
+Usage:
+  synthesisui login [options]          connect the CLI to your account (device-flow)
+  synthesisui list [options]           list the published design systems
+  synthesisui add <slug> [options]     materialize a DS into _synthesisui/ds/<slug>/
 
-Opções:
-  --registry <url>   URL do registry (ou env SYNTHESISUI_REGISTRY_URL)
-  --dir <path>       raiz do projeto consumidor (default: diretório atual)
-  -h, --help         esta ajuda
+Options:
+  --registry <url>   registry URL (or env SYNTHESISUI_REGISTRY_URL)
+  --dir <path>       consumer project root (default: current directory)
+  --version <n>      install a specific version (default: latest)
+  -h, --help         this help
 
-Exemplos:
+Examples:
   synthesisui login
   synthesisui list
   synthesisui add halogen
+  synthesisui add halogen --version 3
   synthesisui add halogen --registry http://localhost:3737
 `;
 
-/** Extrai `--flag value` simples e os posicionais restantes. */
+/** Extracts simple `--flag value` pairs and the remaining positionals. */
 function parseFlags(argv: string[]): {
   positionals: string[];
   flags: Record<string, string | boolean>;
@@ -70,18 +72,29 @@ async function main() {
     case "add": {
       const slug = args[0];
       if (!slug) {
-        console.error("erro: informe o slug — `synthesisui add <slug>`");
+        console.error("error: provide the slug — `synthesisui add <slug>`");
         process.exitCode = 1;
         return;
       }
-      await add(slug, { registry, dir });
+      let version: number | undefined;
+      if (typeof flags.version === "string") {
+        version = Number.parseInt(flags.version.replace(/^v/i, ""), 10);
+        if (!Number.isInteger(version) || version < 1) {
+          console.error(
+            `error: invalid --version "${flags.version}" — use an integer ≥ 1`,
+          );
+          process.exitCode = 1;
+          return;
+        }
+      }
+      await add(slug, { registry, dir, version });
       break;
     }
     case "login":
       await login({ registry });
       break;
     default:
-      console.error(`comando desconhecido: "${command}"\n`);
+      console.error(`unknown command: "${command}"\n`);
       console.log(HELP);
       process.exitCode = 1;
   }
@@ -89,7 +102,7 @@ async function main() {
 
 main().catch((err) => {
   if (err instanceof RegistryError) {
-    console.error(`erro: ${err.message}`);
+    console.error(`error: ${err.message}`);
   } else {
     console.error(err);
   }

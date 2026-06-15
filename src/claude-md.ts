@@ -10,7 +10,7 @@ type InstalledLock = {
   version: number;
 };
 
-/** Lê os DSs instalados a partir dos .lock em _synthesisui/ds/<slug>/. */
+/** Reads the installed DSs from the .lock files in _synthesisui/ds/<slug>/. */
 async function readInstalled(projectRoot: string): Promise<InstalledLock[]> {
   const dsDir = join(projectRoot, "_synthesisui", "ds");
   let entries: string[] = [];
@@ -28,7 +28,7 @@ async function readInstalled(projectRoot: string): Promise<InstalledLock[]> {
       const lock = JSON.parse(raw) as InstalledLock;
       locks.push({ slug: lock.slug, name: lock.name, version: lock.version });
     } catch {
-      // pasta sem .lock válido — ignora
+      // folder without a valid .lock — ignore
     }
   }
   return locks;
@@ -41,30 +41,30 @@ function renderRegion(installed: InstalledLock[]): string {
   const lines = installed
     .map(
       (ds) =>
-        `- **${ds.name}** (\`${ds.slug}\`, v${ds.version}) — guia: \`_synthesisui/ds/${ds.slug}/GUIDE.md\``,
+        `- **${ds.name}** (\`${ds.slug}\`, v${ds.version}) — guide: \`_synthesisui/ds/${ds.slug}/v${ds.version}/GUIDE.md\``,
     )
     .join("\n");
 
   const body = `## Design Systems (via SynthesisUI)
 
-Este projeto usa design system(s) trazido(s) pelo \`synthesisui\` CLI. **Ao criar ou editar
-componentes, leia o GUIDE.md do sistema e siga-o:** use apenas tokens semânticos
-(\`var(--ds-color-semantic-*)\`, \`--ds-spacing-*\`, etc.), escope a UI com \`data-ds="<slug>"\`,
-e reaproveite as classes \`.ds-*\`. Não use valores crus fora da escala do sistema. **Para revisar um
-componente, crie uma página de amostra isolada (ex.: \`app/synthesisui-samples/<componente>/\`) — não
-aplique a páginas reais de produção a menos que seja pedido.**
+This project uses design system(s) brought in by the \`synthesisui\` CLI. **When creating or editing
+components, read the system's GUIDE.md and follow it:** use only semantic tokens
+(\`var(--ds-color-semantic-*)\`, \`--ds-spacing-*\`, etc.), scope the UI with \`data-ds="<slug>"\`,
+and reuse the \`.ds-*\` classes. Do not use raw values outside the system's scale. **To review a
+component, create an isolated sample page (e.g. \`app/synthesisui-samples/<component>/\`) — do not
+apply it to real production pages unless asked.**
 
 ${lines}
 
-_Bloco gerenciado pelo CLI — não edite à mão; rode \`synthesisui add <slug>\` para atualizar._`;
+_Block managed by the CLI — do not edit by hand; run \`synthesisui add <slug>\` to update._`;
 
   return `${START}\n${body}\n${END}`;
 }
 
 /**
- * Regenera o bloco gerenciado no CLAUDE.md da raiz refletindo todos os DSs
- * instalados. Idempotente: substitui o trecho entre os marcadores se existir,
- * senão cria o arquivo / anexa o bloco. Retorna se o arquivo foi criado.
+ * Regenerates the managed block in the root CLAUDE.md reflecting every installed
+ * DS. Idempotent: replaces the text between the markers if present, otherwise
+ * creates the file / appends the block. Returns whether the file was created.
  */
 export async function syncClaudeMd(projectRoot: string): Promise<{
   created: boolean;

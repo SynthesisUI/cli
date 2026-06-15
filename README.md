@@ -1,54 +1,55 @@
 # synthesisui
 
-CLI para trazer design systems publicados no [SynthesisUI](https://www.synthesisui.com)
-para dentro de qualquer projeto. Materializa o sistema em `_synthesisui/ds/<slug>/` e injeta
-um bloco gerenciado no `CLAUDE.md` da raiz, de forma que o Claude Code construa
-componentes seguindo o design system.
+CLI to bring design systems published on [SynthesisUI](https://www.synthesisui.com)
+into any project. It materializes the system into `_synthesisui/ds/<slug>/` and injects
+a managed block into the root `CLAUDE.md`, so Claude Code builds components following the
+design system.
 
-## Uso
+## Usage
 
-Sem instalar nada:
+Without installing anything:
 
 ```bash
-npx synthesisui login        # conecta o CLI à sua conta (device-flow no browser)
-npx synthesisui list         # lista os design systems disponíveis
-npx synthesisui add <slug>   # traz um DS para _synthesisui/ds/<slug>/
+npx synthesisui login        # connect the CLI to your account (device-flow in the browser)
+npx synthesisui list         # list the available design systems
+npx synthesisui add <slug>   # bring a DS into _synthesisui/ds/<slug>/
 ```
 
-Ou instale globalmente:
+Or install globally:
 
 ```bash
 npm install -g synthesisui
 synthesisui add halogen
 ```
 
-### O que o `add` materializa
+### What `add` materializes
 
-Em `_synthesisui/ds/<slug>/`:
+In `_synthesisui/ds/<slug>/`:
 
-- `design-system.json` — a verdade canônica do design system
-- `tokens.css` — CSS custom properties escopadas por `data-ds`
-- `GUIDE.md` — instruções para o agente (papéis semânticos, mood, recipes, como adicionar componentes)
-- `.lock` — slug + versão pinada (reproduzível)
+- `design-system.json` — the canonical source of truth of the design system
+- `tokens.css` — CSS custom properties scoped by `data-ds`
+- `theme.css` — optional Tailwind v4 `@theme` adapter (use `bg-primary`, `p-md`, … backed by the tokens)
+- `GUIDE.md` — instructions for the agent (semantic roles, mood, recipes, how to add components)
+- `.lock` — pinned slug + version (reproducible)
 
-E injeta um bloco idempotente `<!-- synthesisui:start/end -->` no `CLAUDE.md` da raiz,
-refletindo todos os DSs instalados.
+And it injects an idempotent `<!-- synthesisui:start/end -->` block into the root `CLAUDE.md`,
+reflecting every installed DS.
 
-## Autenticação
+## Authentication
 
-`synthesisui login` usa device-flow (RFC 8628): abre o browser, você confirma um código,
-e o token é salvo em `~/.synthesisui/credentials.json` (por máquina). Logout = apagar esse arquivo.
+`synthesisui login` uses device-flow (RFC 8628): it opens the browser, you confirm a code,
+and the token is saved to `~/.synthesisui/credentials.json` (per machine). Logout = delete that file.
 
 ## Registry
 
-Por padrão aponta para `https://www.synthesisui.com`. Sobrescreva com:
+By default it points to `https://www.synthesisui.com`. Override it with:
 
 ```bash
 synthesisui list --registry http://localhost:3000
-# ou
+# or
 SYNTHESISUI_REGISTRY_URL=http://localhost:3000 synthesisui list
 ```
 
-## Licença
+## License
 
 MIT

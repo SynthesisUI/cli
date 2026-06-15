@@ -1,7 +1,7 @@
 /**
- * Espelho mínimo do contrato do registry — o CLI é standalone e NÃO importa
- * `@synthesisui-hub/ds-contracts` (só consome o JSON do endpoint). Tipamos
- * apenas o que o CLI lê para gerar o GUIDE.md e o .lock.
+ * Minimal mirror of the registry contract — the CLI is standalone and does NOT
+ * import `@synthesisui-hub/ds-contracts` (it only consumes the endpoint JSON).
+ * We type only what the CLI reads to generate GUIDE.md and the .lock.
  */
 
 export type RegistrySummary = {

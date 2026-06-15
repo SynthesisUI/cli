@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { syncClaudeMd } from "../claude-md.js";
 import { resolveRegistry } from "../config.js";
@@ -7,73 +7,127 @@ import { fetchDesignSystem } from "../registry.js";
 
 type AddOptions = {
   registry?: string;
-  /** Raiz do projeto consumidor (default: cwd). */
+  /** Consumer project root (default: cwd). */
   dir?: string;
+  /** Specific version to install; latest when omitted. */
+  version?: number;
 };
 
+/** Root pointer at `_synthesisui/ds/<slug>/.lock` — names the active version. */
+type RootLock = {
+  slug: string;
+  name: string;
+  version: number;
+  registry: string;
+  fetchedAt: string;
+};
+
+async function readRootLock(path: string): Promise<RootLock | null> {
+  try {
+    return JSON.parse(await readFile(path, "utf8")) as RootLock;
+  } catch {
+    return null;
+  }
+}
+
 /**
- * Materializa um DS publicado em `_synthesisui/ds/<slug>/` e atualiza o CLAUDE.md.
+ * Materializes a published DS into `_synthesisui/ds/<slug>/v<version>/`, points
+ * stable root re-exports (tokens.css/theme.css) and a `.lock` at it, and updates
+ * CLAUDE.md. Older version folders are kept for rollback/diff.
  */
 export async function add(slug: string, opts: AddOptions): Promise<void> {
   const base = resolveRegistry(opts.registry);
   const projectRoot = opts.dir ?? process.cwd();
 
-  console.log(`→ buscando "${slug}" em ${base} …`);
-  const payload = await fetchDesignSystem(base, slug);
+  const label = opts.version != null ? `${slug}@v${opts.version}` : slug;
+  console.log(`→ fetching "${label}" from ${base} …`);
+  const payload = await fetchDesignSystem(base, slug, opts.version);
 
-  const targetDir = join(projectRoot, "_synthesisui", "ds", payload.slug);
-  await mkdir(targetDir, { recursive: true });
+  const slugDir = join(projectRoot, "_synthesisui", "ds", payload.slug);
+  const versionDir = join(slugDir, `v${payload.version}`);
+  const rootLockPath = join(slugDir, ".lock");
 
-  // 1. artifacts compilados pelo servidor (tokens.css, e futuros theme.css…)
+  // know what was active before, to report install vs update vs switch
+  const prev = await readRootLock(rootLockPath);
+
+  await mkdir(versionDir, { recursive: true });
+
+  // 1. server artifacts (tokens.css, theme.css, …) → pinned version folder
   for (const [filename, content] of Object.entries(payload.artifacts)) {
-    await writeFile(join(targetDir, filename), content, "utf8");
+    await writeFile(join(versionDir, filename), content, "utf8");
   }
 
-  // 2. verdade canônica
+  // 2. canonical source of truth
   await writeFile(
-    join(targetDir, "design-system.json"),
+    join(versionDir, "design-system.json"),
     `${JSON.stringify(payload.document, null, 2)}\n`,
     "utf8",
   );
 
-  // 3. guia para o agente (gerado client-side a partir do document)
-  await writeFile(join(targetDir, "GUIDE.md"), buildGuide(payload), "utf8");
+  // 3. guide for the agent (generated client-side from the document)
+  await writeFile(join(versionDir, "GUIDE.md"), buildGuide(payload), "utf8");
 
-  // 4. lock reproduzível
-  const lock = {
+  // 4. stable root re-exports for each CSS artifact → always the active version,
+  //    so the consumer's @import path never changes across updates
+  const cssArtifacts = Object.keys(payload.artifacts).filter((f) =>
+    f.endsWith(".css"),
+  );
+  for (const filename of cssArtifacts) {
+    await writeFile(
+      join(slugDir, filename),
+      `/* Active version (v${payload.version}). Managed by synthesisui — do not edit. */\n` +
+        `@import "./v${payload.version}/${filename}";\n`,
+      "utf8",
+    );
+  }
+
+  // 5. root pointer
+  const lock: RootLock = {
     slug: payload.slug,
     name: payload.name,
     version: payload.version,
     registry: base,
     fetchedAt: new Date().toISOString(),
   };
-  await writeFile(
-    join(targetDir, ".lock"),
-    `${JSON.stringify(lock, null, 2)}\n`,
-    "utf8",
-  );
+  await writeFile(rootLockPath, `${JSON.stringify(lock, null, 2)}\n`, "utf8");
 
-  // 5. descoberta pelo agente
+  // 6. discovery by the agent
   const claudeMd = await syncClaudeMd(projectRoot);
+
+  // outcome line
+  const v = payload.version;
+  if (!prev) {
+    console.log(`✓ ${payload.name} v${v} installed → _synthesisui/ds/${payload.slug}/`);
+  } else if (prev.version === v) {
+    console.log(
+      `✓ ${payload.name} v${v} already installed${opts.version == null ? " (latest)" : ""} — refreshed`,
+    );
+  } else if (v > prev.version) {
+    console.log(
+      `↑ ${payload.name} v${prev.version} → v${v} (kept v${prev.version}/ for rollback)`,
+    );
+  } else {
+    console.log(
+      `↺ ${payload.name} active version set to v${v} (was v${prev.version})`,
+    );
+  }
 
   const files = [
     ...Object.keys(payload.artifacts),
     "design-system.json",
     "GUIDE.md",
-    ".lock",
   ];
+  console.log(`  v${v}/: ${files.join(", ")}`);
   console.log(
-    `✓ ${payload.name} v${payload.version} → _synthesisui/ds/${payload.slug}/`,
-  );
-  console.log(`  ${files.join(", ")}`);
-  console.log(
-    `  CLAUDE.md ${claudeMd.created ? "criado" : "atualizado"} (${claudeMd.count} sistema(s) instalado(s))`,
+    `  CLAUDE.md ${claudeMd.created ? "created" : "updated"} (${claudeMd.count} system(s) installed)`,
   );
   console.log("");
-  console.log("Próximos passos:");
+  console.log("Next steps:");
   console.log(
-    `  • @import "_synthesisui/ds/${payload.slug}/tokens.css" no seu CSS global`,
+    `  • @import "_synthesisui/ds/${payload.slug}/tokens.css" in your global CSS (stable path)`,
   );
-  console.log(`  • escope sua UI com data-ds="${payload.slug}"`);
-  console.log(`  • detalhes e regras em _synthesisui/ds/${payload.slug}/GUIDE.md`);
+  console.log(`  • scope your UI with data-ds="${payload.slug}"`);
+  console.log(
+    `  • details and rules in _synthesisui/ds/${payload.slug}/v${v}/GUIDE.md`,
+  );
 }
