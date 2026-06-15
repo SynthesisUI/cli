@@ -77,18 +77,30 @@ ${
 }${
     hasTailwind
       ? `
-## Using it with Tailwind v4 (optional)
+## Styling with Tailwind v4 (preferred in this project)
 
-If the project uses Tailwind v4, import \`theme.css\` after \`tailwindcss\` and \`tokens.css\`:
+Import \`theme.css\` after \`tailwindcss\` and \`tokens.css\`:
 \`\`\`css
 @import "tailwindcss";
 @import "./_synthesisui/ds/${slug}/tokens.css";
 @import "./_synthesisui/ds/${slug}/theme.css";
 \`\`\`
-This maps the DS tokens onto Tailwind's theme, so inside \`[data-ds="${slug}"]\` you can use
-utilities such as \`bg-primary\`, \`text-foreground\`, \`p-md\`, \`rounded-lg\`, \`shadow-*\`,
-\`font-*\` and \`ease-*\` — all backed by the design system. Prefer these utilities (or the
-\`.ds-*\` recipes) over raw values.
+This maps the DS tokens onto Tailwind's theme, so inside \`[data-ds="${slug}"]\` you get utilities
+backed by the design system: \`bg-*\`/\`text-*\`/\`border-*\` (semantic colors), \`p-*\`/\`m-*\`/\`gap-*\`
+(spacing), \`rounded-*\`, \`shadow-*\`, \`font-*\`, \`ease-*\`.
+
+**Prefer these utilities for layout and new composition** — they are this project's idiom and read
+far better than inline \`style\`. Reach for inline \`var(--ds-*)\` only when no utility fits.
+
+\`\`\`tsx
+// ✅ preferred — Tailwind utilities backed by the DS
+<main className="bg-canvas text-foreground p-2xl flex flex-col gap-md">
+  <button className="ds-button" data-intent="primary">Save</button>
+</main>
+
+// ❌ avoid — inline styles with raw var() when a utility exists
+<main style={{ background: "var(--ds-color-semantic-canvas)", padding: "var(--ds-spacing-2xl)" }}>
+\`\`\`
 
 ---
 `
@@ -103,9 +115,17 @@ those, not the versioned ones. The pinned files for this version — ${artifactL
 ---
 
 ## Rules (follow them when creating components)
-
+${
+  hasTailwind
+    ? `
+- **Styling mechanism:** prefer Tailwind utilities backed by the DS (\`bg-primary\`, \`p-md\`,
+  \`font-display\`, …) for layout and new composition, and reuse the \`.ds-*\` recipes for components
+  the DS already covers. Use inline \`style\` with \`var(--ds-*)\` only as a last resort. The token
+  names below are the source vocabulary — every utility derives from them.`
+    : ""
+}
 - **Always use semantic tokens**, never raw values nor primitives directly.
-  Color: \`var(--ds-color-semantic-<role>)\`. The roles are: ${list(semanticRoles)}.
+  Color: \`var(--ds-color-semantic-<role>)\`${hasTailwind ? " (utility: `bg-<role>`/`text-<role>`)" : ""}. The roles are: ${list(semanticRoles)}.
 - Primitives (\`--ds-color-<palette>-<step>\`) exist but should **not** be referenced directly —
   they feed the semantic roles.
 - Spacing → \`var(--ds-spacing-<key>)\`: ${list(Object.keys(foundations.spacing))}.
