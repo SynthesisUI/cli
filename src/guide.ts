@@ -194,6 +194,23 @@ in its own \`<div data-ds="${slug}"${hasAlt ? ` data-scheme="…"` : ""}>\`, or 
 app root so everything (portals included) inherits it. Behavior (open/close, focus trap, positioning,
 keyboard) is yours to wire — the system ships the **looks**, not the JavaScript.
 
+### Interactive recipes — the behavior contract
+Several recipes are **static surfaces**: they ship the styling for every state, but never any
+JavaScript. You own the interaction and drive each state by toggling the documented \`data-*\`
+attributes (listed per component below). The recipe restyles itself; you wire the logic.
+- **Open / close** (menu, select, modal, tooltip, popover): render the surface, then handle show/hide,
+  outside-click, focus trap, positioning and \`Esc\` yourself (or with a headless lib).
+- **Selection / active** (tabs, sidebar, pagination): set \`data-active="true"\` on the chosen item from
+  your own state/router — the recipe lifts it onto a surface.
+- **On / off** (switch): toggle \`data-state="on"\` on the track **and** its thumb together.
+- **Command bar / ⌘K** (if your system ships one): the recipe is only the styled input row — wire the
+  shortcut, the palette list and filtering yourself.
+- **Select** (native vs custom): \`.ds-select\` strips native chrome (\`appearance:none\`). On a real
+  \`<select>\`, wrap it and overlay your own chevron; on a custom trigger, nest \`.ds-select-chevron\`.
+
+Pair these with the right ARIA (\`aria-expanded\`, \`role="dialog"\`, \`aria-current\`, …) — the system
+styles it, you make it work.
+
 ---
 
 ## Rules (follow them when creating components)
