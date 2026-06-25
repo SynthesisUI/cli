@@ -1,5 +1,9 @@
 import { readToken } from "./config.js";
-import type { RegistryPayload, RegistrySummary } from "./types.js";
+import type {
+  AdvisorResponse,
+  RegistryPayload,
+  RegistrySummary,
+} from "./types.js";
 
 export class RegistryError extends Error {}
 
@@ -57,4 +61,38 @@ export async function fetchDesignSystem(
     );
   }
   return (await res.json()) as RegistryPayload;
+}
+
+/**
+ * Calls the hosted advisor (`POST /api/ai/advisor`). Gated + metered server-side:
+ * 401 = not logged in, 429 = daily quota reached. Sends the Bearer token if present.
+ */
+export async function postAdvisor(
+  base: string,
+  context: string,
+): Promise<AdvisorResponse> {
+  let res: Response;
+  try {
+    res = await fetch(`${base}/api/ai/advisor`, {
+      method: "POST",
+      headers: { "content-type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify({ context }),
+    });
+  } catch {
+    throw new RegistryError(
+      `Could not reach the registry at ${base}. ` +
+        `Check the URL (--registry / SYNTHESISUI_REGISTRY_URL) and your connection.`,
+    );
+  }
+
+  if (res.status === 401) {
+    throw new RegistryError(
+      "Not authenticated. Run `synthesisui login` first.",
+    );
+  }
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { message?: string };
+    throw new RegistryError(body.message ?? `Advisor responded ${res.status}.`);
+  }
+  return (await res.json()) as AdvisorResponse;
 }

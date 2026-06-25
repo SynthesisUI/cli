@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { add } from "./commands/add.js";
+import { advise } from "./commands/advise.js";
 import { list } from "./commands/list.js";
 import { login } from "./commands/login.js";
 import { RegistryError } from "./registry.js";
@@ -10,6 +11,7 @@ Usage:
   synthesisui login [options]          connect the CLI to your account (device-flow)
   synthesisui list [options]           list the published design systems
   synthesisui add <slug> [options]     materialize a DS into _synthesisui/ds/<slug>/
+  synthesisui advise "<value prop>"    engagement-pattern proposals for this project (login required)
 
 Options:
   --registry <url>   registry URL (or env SYNTHESISUI_REGISTRY_URL)
@@ -23,6 +25,7 @@ Examples:
   synthesisui add halogen
   synthesisui add halogen --version 3
   synthesisui add halogen --registry http://localhost:3737
+  synthesisui advise "habit-building app for tracking personal finances"
 `;
 
 /** Extracts simple `--flag value` pairs and the remaining positionals. */
@@ -93,6 +96,18 @@ async function main() {
     case "login":
       await login({ registry });
       break;
+    case "advise": {
+      const valueProp = args.join(" ").trim();
+      if (!valueProp) {
+        console.error(
+          'error: describe your product — `synthesisui advise "<value proposition>"`',
+        );
+        process.exitCode = 1;
+        return;
+      }
+      await advise(valueProp, { registry, dir });
+      break;
+    }
     default:
       console.error(`unknown command: "${command}"\n`);
       console.log(HELP);

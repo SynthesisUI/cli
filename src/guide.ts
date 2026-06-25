@@ -13,8 +13,17 @@ const dataAttrs = (variants: Record<string, Record<string, unknown>>) =>
 
 // Famílias genéricas do CSS — fallbacks, não webfonts a carregar.
 const GENERIC_FAMILIES = new Set([
-  "sans-serif", "serif", "monospace", "system-ui", "ui-sans-serif",
-  "ui-serif", "ui-monospace", "cursive", "fantasy", "inherit", "initial",
+  "sans-serif",
+  "serif",
+  "monospace",
+  "system-ui",
+  "ui-sans-serif",
+  "ui-serif",
+  "ui-monospace",
+  "cursive",
+  "fantasy",
+  "inherit",
+  "initial",
 ]);
 
 /** Famílias custom do documento (display/body/mono), deduplicadas, sem genéricos. */
@@ -173,10 +182,10 @@ Import \`theme.css\` after \`tailwindcss\` and \`tokens.css\`:
 This maps the DS tokens onto Tailwind's theme, so inside \`[data-ds="${slug}"]\` you get utilities
 backed by the design system: \`bg-*\`/\`text-*\`/\`border-*\` (semantic colors), \`p-*\`/\`m-*\`/\`gap-*\`
 (spacing), \`rounded-*\`, \`shadow-*\`, \`font-*\` (families **and** weights), \`text-*\` (type scale), \`ease-*\`${
-    seriesKeys.length > 0
-      ? `, \`bg-series-*\`/\`text-series-*\`/\`fill-series-*\` (data-viz series)`
-      : ""
-  }.
+        seriesKeys.length > 0
+          ? `, \`bg-series-*\`/\`text-series-*\`/\`fill-series-*\` (data-viz series)`
+          : ""
+      }.
 
 **Prefer these utilities for layout and new composition** — they are this project's idiom and read
 far better than inline \`style\`. Reach for inline \`var(--ds-*)\` only when no utility fits.
