@@ -97,7 +97,9 @@ export async function add(slug: string, opts: AddOptions): Promise<void> {
   // outcome line
   const v = payload.version;
   if (!prev) {
-    console.log(`✓ ${payload.name} v${v} installed → _synthesisui/ds/${payload.slug}/`);
+    console.log(
+      `✓ ${payload.name} v${v} installed → _synthesisui/ds/${payload.slug}/`,
+    );
   } else if (prev.version === v) {
     console.log(
       `✓ ${payload.name} v${v} already installed${opts.version == null ? " (latest)" : ""} — refreshed`,

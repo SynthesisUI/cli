@@ -68,3 +68,16 @@ export type RegistryPayload = RegistrySummary & {
   document: DesignSystemDocument;
   artifacts: Record<string, string>;
 };
+
+/** Resposta de `POST /api/ai/advisor` (advisor de engajamento — propõe, não executa). */
+export type AdvisorProposal = {
+  pattern: string;
+  rationale: string;
+  suggestedBlocks: string[];
+};
+
+export type AdvisorResponse = {
+  proposals: AdvisorProposal[];
+  usage: { inputTokens: number; outputTokens: number };
+  model: string;
+};
