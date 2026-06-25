@@ -1,6 +1,7 @@
 import { readToken } from "./config.js";
 import type {
   AdvisorResponse,
+  GenerateResponse,
   RegistryPayload,
   RegistrySummary,
 } from "./types.js";
@@ -95,4 +96,40 @@ export async function postAdvisor(
     throw new RegistryError(body.message ?? `Advisor responded ${res.status}.`);
   }
   return (await res.json()) as AdvisorResponse;
+}
+
+/**
+ * Gera uma recipe token-only (chat-gen PRO) via `POST /api/ai/generate`.
+ * Gated + metered server-side: 401 = sem login, 429 = cota diária estourada.
+ */
+export async function postGenerate(
+  base: string,
+  payload: { slug: string; description: string; name?: string },
+): Promise<GenerateResponse> {
+  let res: Response;
+  try {
+    res = await fetch(`${base}/api/ai/generate`, {
+      method: "POST",
+      headers: { "content-type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify(payload),
+    });
+  } catch {
+    throw new RegistryError(
+      `Could not reach the registry at ${base}. ` +
+        `Check the URL (--registry / SYNTHESISUI_REGISTRY_URL) and your connection.`,
+    );
+  }
+
+  if (res.status === 401) {
+    throw new RegistryError(
+      "Not authenticated. Run `synthesisui login` first.",
+    );
+  }
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { message?: string };
+    throw new RegistryError(
+      body.message ?? `Generate responded ${res.status}.`,
+    );
+  }
+  return (await res.json()) as GenerateResponse;
 }

@@ -83,3 +83,13 @@ export type AdvisorResponse = {
   usage: { inputTokens: number; outputTokens: number };
   model: string;
 };
+
+/** Resposta de `POST /api/ai/generate` (chat-gen PRO — recipe token-only validada). */
+export type GenerateResponse = {
+  name: string;
+  recipe: ComponentRecipe;
+  css: string;
+  usage: { inputTokens: number; outputTokens: number };
+  model: string;
+  tries: number;
+};
