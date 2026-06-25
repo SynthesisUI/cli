@@ -11,6 +11,31 @@ const dataAttrs = (variants: Record<string, Record<string, unknown>>) =>
     ([axis, opts]) => `data-${kebab(axis)}="${Object.keys(opts).join("|")}"`,
   );
 
+// Famílias genéricas do CSS — fallbacks, não webfonts a carregar.
+const GENERIC_FAMILIES = new Set([
+  "sans-serif", "serif", "monospace", "system-ui", "ui-sans-serif",
+  "ui-serif", "ui-monospace", "cursive", "fantasy", "inherit", "initial",
+]);
+
+/** Famílias custom do documento (display/body/mono), deduplicadas, sem genéricos. */
+function customFontFamilies(families: {
+  display: string;
+  body: string;
+  mono: string;
+}): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const family of [families.display, families.body, families.mono]) {
+    const name = family?.trim();
+    if (!name) continue;
+    const key = name.toLowerCase();
+    if (GENERIC_FAMILIES.has(key) || seen.has(key)) continue;
+    seen.add(key);
+    out.push(name);
+  }
+  return out;
+}
+
 /** One entry per component: class, variant data-*, states, and multi-part anatomy. */
 function componentEntry(cname: string, recipe: ComponentRecipe): string {
   const cls = `.ds-${kebab(cname)}`;
@@ -46,6 +71,33 @@ export function buildGuide(payload: RegistryPayload): string {
 
   const semanticRoles = Object.keys(foundations.color.semantic);
   const seriesKeys = Object.keys(foundations.color.series ?? {});
+  const fontFamilies = customFontFamilies(foundations.typography.families);
+  const fontsHref =
+    fontFamilies.length > 0
+      ? `https://fonts.googleapis.com/css2?${fontFamilies
+          .map((n) => `family=${n.replace(/ /g, "+")}:wght@400;500;600;700`)
+          .join("&")}&display=swap`
+      : null;
+  const fontsSection = fontsHref
+    ? `
+## Fonts
+
+This system's type relies on ${list(fontFamilies)} — **the DS ships token names, not the
+fonts themselves.** If you don't load them they fall back to a generic family and the system loses
+its typographic identity. Load them once (any one approach):
+
+- **Google Fonts** — drop in your \`<head>\` (or root layout):
+  \`\`\`html
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="${fontsHref}" />
+  \`\`\`
+- **Next.js** (\`next/font/google\`), **Fontsource**, or self-hosted \`@font-face\` work too — just
+  register the families above. If a family isn't on Google Fonts, self-host it.
+
+---
+`
+    : "";
   const weights = Object.keys(foundations.typography.weights);
   const hasAlt =
     foundations.color.semanticAlt &&
@@ -107,7 +159,7 @@ ${
    \`\`\`
 `
     : ""
-}${
+}${fontsSection}${
   hasTailwind
     ? `
 ## Styling with Tailwind v4 (preferred in this project)
@@ -243,7 +295,10 @@ ${
   weights${hasTailwind ? " (utility: `font-<key>`)" : ""}: ${list(weights)};
   scale \`--ds-typography-scale-<key>-font-size\`${hasTailwind ? " (utility: `text-<key>`)" : ""}: ${list(Object.keys(foundations.typography.scale))}.
 - Motion: durations \`--ds-motion-durations-<key>\` (${list(Object.keys(motion.durations))}) and
-  easings \`--ds-motion-easings-<key>\` (${list(Object.keys(motion.easings))}).
+  easings \`--ds-motion-easings-<key>\` (${list(Object.keys(motion.easings))}). Use them on
+  \`transition\`/\`animation\` (e.g. \`transition: color var(--ds-motion-durations-fast) var(--ds-motion-easings-standard)\`)
+  so timing stays on-brand. The DS ships timing tokens, **not** a runtime — for entrance/reveal/stagger
+  pair them with a motion lib (e.g. \`motion\`/Framer) or CSS \`@keyframes\`.
 - When **creating a new component** the DS does not cover yet: compose it from these semantic
   tokens to inherit the system's identity; do not invent colors/measures outside the scale.
 
