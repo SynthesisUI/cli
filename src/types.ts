@@ -69,6 +69,8 @@ export type DesignSystemDocument = {
 export type RegistryPayload = RegistrySummary & {
   document: DesignSystemDocument;
   artifacts: Record<string, string>;
+  /** Regras de governança (DS pessoal) → materializadas em `rules.md`. */
+  rules?: string[];
 };
 
 /** Resposta de `POST /api/ai/advisor` (advisor de engajamento — propõe, não executa). */

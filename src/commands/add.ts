@@ -91,6 +91,19 @@ export async function add(slug: string, opts: AddOptions): Promise<void> {
   };
   await writeFile(rootLockPath, `${JSON.stringify(lock, null, 2)}\n`, "utf8");
 
+  // 5b. governance rules (personal DS) → rules.md at the slug root (stable path,
+  //     highest authority; the GUIDE tells the agent to read it first)
+  const rules = payload.rules ?? [];
+  if (rules.length > 0) {
+    const body =
+      `# ${payload.name} — Rules\n\n` +
+      "> Accumulated rules for this design system. **Max authority — follow these first.**\n" +
+      `> Managed by synthesisui (edit in the studio). ${rules.length} rule(s).\n\n${rules
+        .map((r) => `- ${r}`)
+        .join("\n")}\n`;
+    await writeFile(join(slugDir, "rules.md"), body, "utf8");
+  }
+
   // 6. discovery by the agent
   const claudeMd = await syncClaudeMd(projectRoot);
 
@@ -120,6 +133,9 @@ export async function add(slug: string, opts: AddOptions): Promise<void> {
     "GUIDE.md",
   ];
   console.log(`  v${v}/: ${files.join(", ")}`);
+  if (rules.length > 0) {
+    console.log(`  rules.md → ${rules.length} rule(s) (read these first)`);
+  }
   console.log(
     `  CLAUDE.md ${claudeMd.created ? "created" : "updated"} (${claudeMd.count} system(s) installed)`,
   );
