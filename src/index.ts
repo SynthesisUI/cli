@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { add } from "./commands/add.js";
 import { advise } from "./commands/advise.js";
+import { generate } from "./commands/generate.js";
 import { list } from "./commands/list.js";
 import { login } from "./commands/login.js";
 import { RegistryError } from "./registry.js";
@@ -12,11 +13,14 @@ Usage:
   synthesisui list [options]           list the published design systems
   synthesisui add <slug> [options]     materialize a DS into _synthesisui/ds/<slug>/
   synthesisui advise "<value prop>"    engagement-pattern proposals for this project (login required)
+  synthesisui generate "<desc>"        generate a token-only component recipe for your DS (login required)
 
 Options:
   --registry <url>   registry URL (or env SYNTHESISUI_REGISTRY_URL)
   --dir <path>       consumer project root (default: current directory)
   --version <n>      install a specific version (default: latest)
+  --ds <slug>        target design system for generate (default: the installed one)
+  --name <name>      preferred component name for generate
   -h, --help         this help
 
 Examples:
@@ -26,6 +30,7 @@ Examples:
   synthesisui add halogen --version 3
   synthesisui add halogen --registry http://localhost:3737
   synthesisui advise "habit-building app for tracking personal finances"
+  synthesisui generate "an upgrade banner with a title, message and a primary CTA"
 `;
 
 /** Extracts simple `--flag value` pairs and the remaining positionals. */
@@ -106,6 +111,20 @@ async function main() {
         return;
       }
       await advise(valueProp, { registry, dir });
+      break;
+    }
+    case "generate": {
+      const description = args.join(" ").trim();
+      if (!description) {
+        console.error(
+          'error: describe the component — `synthesisui generate "<description>"`',
+        );
+        process.exitCode = 1;
+        return;
+      }
+      const ds = typeof flags.ds === "string" ? flags.ds : undefined;
+      const name = typeof flags.name === "string" ? flags.name : undefined;
+      await generate(description, { registry, dir, ds, name });
       break;
     }
     default:
