@@ -62,6 +62,8 @@ export type DesignSystemDocument = {
     patterns: Record<string, { description: string; trigger: string }>;
   };
   components: Record<string, ComponentRecipe>;
+  /** Biblioteca de blocos de engajamento (token-only) — categoria à parte. */
+  blocks?: Record<string, ComponentRecipe>;
 };
 
 export type RegistryPayload = RegistrySummary & {

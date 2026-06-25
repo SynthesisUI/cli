@@ -121,6 +121,12 @@ its typographic identity. Load them once (any one approach):
     componentEntry(cname, recipe),
   );
 
+  // Engagement blocks (gamification library) — category apart from core components.
+  const blockEntries = Object.entries(doc.blocks ?? {});
+  const blockLines = blockEntries.map(([bname, recipe]) =>
+    componentEntry(bname, recipe),
+  );
+
   const artifactList = Object.keys(payload.artifacts)
     .map((f) => `\`${f}\``)
     .join(", ");
@@ -320,7 +326,23 @@ Each recipe becomes a \`.ds-<name>\` class (inside the \`[data-ds="${slug}"]\` s
 multi-part components expose \`.ds-<name>-<part>\` classes (listed under each).
 
 ${componentLines.join("\n\n")}
+${
+  blockEntries.length
+    ? `
+---
 
+## Engagement blocks (optional)
+
+A small gamification library the AI advisor (\`synthesisui advise\`) can propose — same
+\`.ds-<name>\` recipe shape as the components above, token-only so they wear the system. Use them
+**only where they fit the product** (progress, retention, recognition); they're a library to compose
+from, not a default — and lean against over-gamifying a serious B2B product. Each is a \`.ds-<name>\`
+class inside the \`[data-ds="${slug}"]\` scope; multi-part ones expose \`.ds-<name>-<part>\`.
+
+${blockLines.join("\n\n")}
+`
+    : ""
+}
 ---
 
 _Full canonical source of truth (including values and keyframes) in \`design-system.json\`._
