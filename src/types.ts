@@ -43,6 +43,7 @@ export type DesignSystemDocument = {
       primitives: Record<string, Record<string, string>>;
       semantic: Record<string, string>;
       semanticAlt?: Record<string, string>;
+      series?: Record<string, string>;
     };
     typography: {
       families: { display: string; body: string; mono: string };

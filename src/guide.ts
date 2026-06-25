@@ -45,6 +45,7 @@ export function buildGuide(payload: RegistryPayload): string {
   const { meta, foundations, motion, components } = doc;
 
   const semanticRoles = Object.keys(foundations.color.semantic);
+  const seriesKeys = Object.keys(foundations.color.series ?? {});
   const weights = Object.keys(foundations.typography.weights);
   const hasAlt =
     foundations.color.semanticAlt &&
@@ -119,7 +120,11 @@ Import \`theme.css\` after \`tailwindcss\` and \`tokens.css\`:
 \`\`\`
 This maps the DS tokens onto Tailwind's theme, so inside \`[data-ds="${slug}"]\` you get utilities
 backed by the design system: \`bg-*\`/\`text-*\`/\`border-*\` (semantic colors), \`p-*\`/\`m-*\`/\`gap-*\`
-(spacing), \`rounded-*\`, \`shadow-*\`, \`font-*\` (families **and** weights), \`text-*\` (type scale), \`ease-*\`.
+(spacing), \`rounded-*\`, \`shadow-*\`, \`font-*\` (families **and** weights), \`text-*\` (type scale), \`ease-*\`${
+    seriesKeys.length > 0
+      ? `, \`bg-series-*\`/\`text-series-*\`/\`fill-series-*\` (data-viz series)`
+      : ""
+  }.
 
 **Prefer these utilities for layout and new composition** — they are this project's idiom and read
 far better than inline \`style\`. Reach for inline \`var(--ds-*)\` only when no utility fits.
@@ -226,7 +231,11 @@ ${
 - **Always use semantic tokens**, never raw values nor primitives directly.
   Color: \`var(--ds-color-semantic-<role>)\`${hasTailwind ? " (utility: `bg-<role>`/`text-<role>`)" : ""}. The roles are: ${list(semanticRoles)}.
 - Primitives (\`--ds-color-<palette>-<step>\`) exist but should **not** be referenced directly —
-  they feed the semantic roles.
+  they feed the semantic roles.${
+    seriesKeys.length > 0
+      ? `\n- Data-viz → \`var(--ds-color-series-<n>)\`${hasTailwind ? " (utility: `bg-series-<n>`/`text-series-<n>`/`fill-series-<n>`)" : ""}: categorical chart/series colors, ${seriesKeys.length} of them (${list(seriesKeys)}). Use them in order for multi-series charts; they re-paint with the system.`
+      : ""
+  }
 - Spacing → \`var(--ds-spacing-<key>)\`: ${list(Object.keys(foundations.spacing))}.
 - Radius → \`var(--ds-radius-<key>)\`: ${list(Object.keys(foundations.radius))}.
 - Shadow → \`var(--ds-shadow-<key>)\`: ${list(Object.keys(foundations.shadow))}.
