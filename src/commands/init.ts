@@ -10,7 +10,7 @@ type InitOptions = {
 };
 
 /**
- * Writes `_synthesisui/config.json` — where `synthesisui page` materializes
+ * Writes `_synthesisui/config.json` - where `synthesisui page` materializes
  * pages and which framework to target. Committable; safe to re-run.
  */
 export async function init(opts: InitOptions): Promise<void> {

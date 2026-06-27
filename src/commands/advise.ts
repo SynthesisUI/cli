@@ -11,7 +11,7 @@ type AdviseOptions = {
 /**
  * Asks the hosted advisor for engagement-pattern proposals, grounded in THIS
  * project (the CLI gathers a compact repo summary) + the value proposition you
- * pass. The advisor proposes only — it changes nothing in your project.
+ * pass. The advisor proposes only - it changes nothing in your project.
  */
 export async function advise(
   valueProp: string,
@@ -42,7 +42,7 @@ export async function advise(
   });
 
   console.log(
-    `(${res.usage.inputTokens} in / ${res.usage.outputTokens} out tokens — ` +
+    `(${res.usage.inputTokens} in / ${res.usage.outputTokens} out tokens - ` +
       `proposals only; nothing in your project was changed)`,
   );
 }

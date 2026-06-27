@@ -78,6 +78,6 @@ export async function generate(
     `  • <div data-ds="${slug}"><div class="ds-${res.name}">…</div></div>`,
   );
   console.log(
-    `  (${res.usage.inputTokens} in / ${res.usage.outputTokens} out tokens — recipe is additive; nothing else changed)`,
+    `  (${res.usage.inputTokens} in / ${res.usage.outputTokens} out tokens - recipe is additive; nothing else changed)`,
   );
 }

@@ -2,7 +2,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 /**
- * Monta um resumo COMPACTO e aterrado do projeto pro advisor — barato em tokens
+ * Monta um resumo COMPACTO e aterrado do projeto pro advisor - barato em tokens
  * e suficiente pra propostas específicas: stack (package.json), forma do repo
  * (árvore nível 1), DS SynthesisUI instalado(s) e o começo do README. Sem dump
  * de código (custo/ruído): o advisor propõe padrões, não lê implementação.
@@ -57,7 +57,7 @@ async function installedDesignSystems(root: string): Promise<string[]> {
       out.push(`${lock?.name ?? e.name} (v${lock?.version ?? "?"})`);
     }
   } catch {
-    // nenhum DS instalado — tudo bem
+    // nenhum DS instalado - tudo bem
   }
   return out;
 }
@@ -88,7 +88,7 @@ export async function buildRepoContext(root: string): Promise<string> {
   if (pkg) {
     parts.push(
       `Projeto: ${pkg.name ?? "(sem nome)"}${
-        pkg.description ? ` — ${pkg.description}` : ""
+        pkg.description ? ` - ${pkg.description}` : ""
       }`,
     );
     const deps = [

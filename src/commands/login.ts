@@ -23,7 +23,7 @@ function openBrowser(url: string) {
     child.on("error", () => {});
     child.unref();
   } catch {
-    // no browser available — the user opens it manually
+    // no browser available - the user opens it manually
   }
 }
 

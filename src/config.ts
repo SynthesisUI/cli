@@ -15,7 +15,7 @@ export function resolveRegistry(flag?: string): string {
   return base.replace(/\/+$/, ""); // no trailing slash
 }
 
-/** Where the device-flow token lives — per machine, in the home dir. */
+/** Where the device-flow token lives - per machine, in the home dir. */
 export const credentialsPath = join(
   homedir(),
   ".synthesisui",
