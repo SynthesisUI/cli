@@ -156,17 +156,27 @@ place** - wire real data, split into components, swap the chart/icon/media place
       : "";
 
   const hasRules = (payload.rules?.length ?? 0) > 0;
-  const rulesNote = hasRules
-    ? `
-## Rules - highest authority
+  const philosophy = payload.document.philosophy;
+  const hasPhilosophy =
+    (philosophy?.sections?.length ?? 0) > 0 || !!philosophy?.context;
+  const readFirst = [
+    hasRules
+      ? `**Read \`_synthesisui/ds/${slug}/rules.md\` FIRST and obey it above everything else** - it carries this system's accumulated, project-specific rules; on any conflict they win.`
+      : "",
+    hasPhilosophy
+      ? `**Then read \`_synthesisui/ds/${slug}/philosophy.md\`** - the mission, principles, voice and motion doctrine. Let it shape every screen you build.`
+      : "",
+  ].filter(Boolean);
+  const rulesNote =
+    readFirst.length > 0
+      ? `
+## Read first - highest authority
 
-**Read \`_synthesisui/ds/${slug}/rules.md\` FIRST and obey it above everything else in this guide.**
-It carries this system's accumulated, project-specific rules; on any conflict they win over the
-generic guidance below.
+${readFirst.map((l) => `- ${l}`).join("\n")}
 
 ---
 `
-    : "";
+      : "";
 
   return `# Design System: ${name}
 

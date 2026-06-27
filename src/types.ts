@@ -66,6 +66,11 @@ export type DesignSystemDocument = {
   blocks?: Record<string, ComponentRecipe>;
   /** Templates de página inteira - materializáveis via `synthesisui page`. */
   layouts?: Record<string, { kind?: string; description?: string }>;
+  /** Filosofia estruturada (Pilar 4) → materializada em `philosophy.md`. */
+  philosophy?: {
+    context?: string;
+    sections?: { key: string; title: string; body: string }[];
+  };
 };
 
 export type RegistryPayload = RegistrySummary & {
@@ -110,6 +115,8 @@ export type ProjectConfig = {
   target: "next" | "general";
   /** Pasta onde as páginas geradas são escritas (ex.: "app"). */
   pagesDir: string;
+  /** Pasta onde os componentes vivem (o agente escreve os recipes aqui). */
+  componentsDir: string;
 };
 
 /** Resposta de `POST /api/ai/generate` (chat-gen PRO - recipe token-only validada). */

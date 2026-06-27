@@ -104,6 +104,31 @@ export async function add(slug: string, opts: AddOptions): Promise<void> {
     await writeFile(join(slugDir, "rules.md"), body, "utf8");
   }
 
+  // 5c. structured philosophy (personal DS) → philosophy.md at the slug root.
+  //     Narrative guidance (mission, principles, voice, motion doctrine…); the
+  //     GUIDE points the agent here right after rules.md.
+  const philosophy = payload.document.philosophy;
+  const sections = philosophy?.sections ?? [];
+  if (sections.length > 0 || philosophy?.context) {
+    const parts = [`# ${payload.name} - Philosophy`, ""];
+    parts.push(
+      "> The voice and principles behind this system. Read after rules.md;",
+      "> let it shape every screen. Managed by synthesisui (edit in the studio).",
+      "",
+    );
+    if (philosophy?.context) {
+      parts.push("## What this product is", "", philosophy.context, "");
+    }
+    for (const s of sections) {
+      parts.push(`## ${s.title}`, "", s.body, "");
+    }
+    await writeFile(
+      join(slugDir, "philosophy.md"),
+      `${parts.join("\n")}\n`,
+      "utf8",
+    );
+  }
+
   // 6. discovery by the agent
   const claudeMd = await syncClaudeMd(projectRoot);
 
@@ -135,6 +160,11 @@ export async function add(slug: string, opts: AddOptions): Promise<void> {
   console.log(`  v${v}/: ${files.join(", ")}`);
   if (rules.length > 0) {
     console.log(`  rules.md → ${rules.length} rule(s) (read these first)`);
+  }
+  if (sections.length > 0 || philosophy?.context) {
+    console.log(
+      `  philosophy.md → ${sections.length} section(s) (read after rules)`,
+    );
   }
   console.log(
     `  CLAUDE.md ${claudeMd.created ? "created" : "updated"} (${claudeMd.count} system(s) installed)`,
