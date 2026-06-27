@@ -16,9 +16,10 @@ type PageOptions = {
 
 /**
  * Materializes a whole page from a DS template into the project (hybrid
- * codegen-first): the server codegens a deterministic file, we write it, and
- * the agent refines it in place. The page uses the DS's `.ds-*` classes +
- * inline token vars, so it re-vests once `tokens.css` is imported.
+ * codegen-first): the server codegens deterministic files, we write them, and
+ * the agent refines them in place. The page uses the DS's `.ds-*` classes +
+ * path classes; the co-located CSS (Next target) carries the responsive media
+ * queries + the CSS-only hamburger, so it re-vests once `tokens.css` is in.
  */
 export async function page(
   slug: string,
@@ -36,13 +37,24 @@ export async function page(
   console.log(`→ generating "${template}" from "${slug}" (${target}) …`);
   const generated = await fetchPage(base, slug, template, target, opts.version);
 
-  // --out wins; otherwise <pagesDir>/<filename> (e.g. app/dashboard.tsx).
-  const relPath = opts.out ?? join(config.pagesDir, generated.filename);
-  const outPath = join(root, relPath);
-  await mkdir(dirname(outPath), { recursive: true });
-  await writeFile(outPath, generated.code, "utf8");
+  // --out targets the page (1st file); sibling files (e.g. the CSS) land in the
+  // same directory. Without --out, everything goes under <pagesDir>.
+  const [pageFile, ...siblings] = generated.files;
+  const pageRel = opts.out ?? join(config.pagesDir, pageFile.filename);
+  const pageDir = dirname(join(root, pageRel));
 
-  console.log(`✓ wrote ${relPath}  (${slug} v${generated.version})`);
+  await mkdir(pageDir, { recursive: true });
+  await writeFile(join(root, pageRel), pageFile.code, "utf8");
+  console.log(`✓ wrote ${pageRel}  (${slug} v${generated.version})`);
+
+  for (const f of siblings) {
+    const rel = opts.out
+      ? join(dirname(pageRel), f.filename)
+      : join(config.pagesDir, f.filename);
+    await writeFile(join(root, rel), f.code, "utf8");
+    console.log(`✓ wrote ${rel}`);
+  }
+
   console.log("");
   console.log("Next steps:");
   console.log(
@@ -55,6 +67,6 @@ export async function page(
     "  • refine the file: wire real data, split into components, swap placeholders",
   );
   console.log(
-    `  • keep the data-ds="${slug}" wrapper and the ds-* classes (stays on-system)`,
+    `  • keep the data-ds="${slug}" wrapper and the ds-* / layout classes (stays on-system)`,
   );
 }

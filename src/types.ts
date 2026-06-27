@@ -88,14 +88,20 @@ export type AdvisorResponse = {
   model: string;
 };
 
+/** Um arquivo gerado: caminho relativo + conteúdo. */
+export type GeneratedFile = {
+  filename: string;
+  code: string;
+};
+
 /** Resposta de `GET /api/registry/ds/<slug>?page=<t>&target=<next|general>`. */
 export type GeneratedPage = {
   slug: string;
   version: number;
   template: string;
   target: "next" | "general";
-  filename: string;
-  code: string;
+  /** Página + (no target Next) o CSS escopado co-locado. O 1º é a página. */
+  files: GeneratedFile[];
 };
 
 /** `_synthesisui/config.json` - escrito por `init`, lido por `page`. */

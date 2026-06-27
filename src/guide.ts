@@ -141,13 +141,15 @@ This system ships whole-page templates: ${layoutNames.map((n) => `\`${n}\``).joi
 
 Materialize one as a real file:
 \`\`\`bash
-synthesisui page ${slug} ${layoutNames[0]}                 # Next .tsx (default)
-synthesisui page ${slug} ${layoutNames[0]} --target general  # plain HTML
+synthesisui page ${slug} ${layoutNames[0]}                 # Next .tsx + .css (default)
+synthesisui page ${slug} ${layoutNames[0]} --target general  # single self-contained HTML
 \`\`\`
-It writes a **deterministic scaffold** using this DS's \`.ds-*\` classes + inline token vars. **Refine it
-in place** - wire real data, split into components, swap the chart/icon/media placeholders - but keep the
-\`data-ds="${slug}"\` wrapper and the \`.ds-*\` classes so it stays on-system. Run \`synthesisui init\` once
-to set the target (next/general) and the output folder.
+It writes a **deterministic scaffold**: the page uses this DS's \`.ds-*\` recipe classes + layout
+path-classes, paired with a co-located scoped CSS (Next target) that carries the **responsive** media
+queries and the **CSS-only hamburger** - so the page is mobile-ready out of the box. **Refine it in
+place** - wire real data, split into components, swap the chart/icon/media placeholders - but keep the
+\`data-ds="${slug}"\` wrapper and the \`.ds-*\` / layout classes so it stays on-system. Run
+\`synthesisui init\` once to set the target (next/general) and the output folder.
 
 ---
 `
