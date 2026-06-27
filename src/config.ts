@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
+import type { ProjectConfig } from "./types.js";
 
 /**
  * Default registry (canonical production domain). Overridable via
@@ -45,4 +46,40 @@ export async function writeToken(
   await writeFile(credentialsPath, `${JSON.stringify(payload, null, 2)}\n`, {
     mode: 0o600,
   });
+}
+
+/** Project-level config (committed): `<root>/_synthesisui/config.json`. */
+export const DEFAULT_CONFIG: ProjectConfig = {
+  target: "next",
+  pagesDir: "app",
+};
+
+const projectConfigPath = (root: string) =>
+  join(root, "_synthesisui", "config.json");
+
+/** Reads the project config, falling back to defaults when absent/invalid. */
+export async function readProjectConfig(root: string): Promise<ProjectConfig> {
+  try {
+    const raw = await readFile(projectConfigPath(root), "utf8");
+    const parsed = JSON.parse(raw) as Partial<ProjectConfig>;
+    return {
+      target: parsed.target === "general" ? "general" : "next",
+      pagesDir:
+        typeof parsed.pagesDir === "string" && parsed.pagesDir
+          ? parsed.pagesDir
+          : DEFAULT_CONFIG.pagesDir,
+    };
+  } catch {
+    return DEFAULT_CONFIG;
+  }
+}
+
+/** Writes the project config (committable, plain JSON). */
+export async function writeProjectConfig(
+  root: string,
+  config: ProjectConfig,
+): Promise<void> {
+  const path = projectConfigPath(root);
+  await mkdir(dirname(path), { recursive: true });
+  await writeFile(path, `${JSON.stringify(config, null, 2)}\n`, "utf8");
 }

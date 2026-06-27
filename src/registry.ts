@@ -1,6 +1,7 @@
 import { readToken } from "./config.js";
 import type {
   AdvisorResponse,
+  GeneratedPage,
   GenerateResponse,
   RegistryPayload,
   RegistrySummary,
@@ -62,6 +63,38 @@ export async function fetchDesignSystem(
     );
   }
   return (await res.json()) as RegistryPayload;
+}
+
+/**
+ * Fetches a whole page generated from a DS template (`?page=&target=`). The
+ * server codegens it from `document.layouts[<template>]`; the CLI just writes it.
+ */
+export async function fetchPage(
+  base: string,
+  slug: string,
+  template: string,
+  target: "next" | "general",
+  version?: number,
+): Promise<GeneratedPage> {
+  const url = new URL(`${base}/api/registry/ds/${encodeURIComponent(slug)}`);
+  url.searchParams.set("page", template);
+  url.searchParams.set("target", target);
+  if (version != null) url.searchParams.set("version", String(version));
+
+  const res = await request(url.toString());
+  if (res.status === 404) {
+    const body = (await res.json().catch(() => ({}))) as { message?: string };
+    throw new RegistryError(
+      body.message ??
+        `No template "${template}" in "${slug}". Run \`synthesisui list\` and check the DS templates.`,
+    );
+  }
+  if (!res.ok) {
+    throw new RegistryError(
+      `Registry responded ${res.status} while generating "${template}".`,
+    );
+  }
+  return (await res.json()) as GeneratedPage;
 }
 
 /**
