@@ -64,6 +64,8 @@ export type DesignSystemDocument = {
   components: Record<string, ComponentRecipe>;
   /** Biblioteca de blocos de engajamento (token-only) — categoria à parte. */
   blocks?: Record<string, ComponentRecipe>;
+  /** Templates de página inteira — materializáveis via `synthesisui page`. */
+  layouts?: Record<string, { kind?: string; description?: string }>;
 };
 
 export type RegistryPayload = RegistrySummary & {
@@ -84,6 +86,24 @@ export type AdvisorResponse = {
   proposals: AdvisorProposal[];
   usage: { inputTokens: number; outputTokens: number };
   model: string;
+};
+
+/** Resposta de `GET /api/registry/ds/<slug>?page=<t>&target=<next|general>`. */
+export type GeneratedPage = {
+  slug: string;
+  version: number;
+  template: string;
+  target: "next" | "general";
+  filename: string;
+  code: string;
+};
+
+/** `_synthesisui/config.json` — escrito por `init`, lido por `page`. */
+export type ProjectConfig = {
+  /** Alvo de materialização (hoje: Next ou HTML genérico). */
+  target: "next" | "general";
+  /** Pasta onde as páginas geradas são escritas (ex.: "app"). */
+  pagesDir: string;
 };
 
 /** Resposta de `POST /api/ai/generate` (chat-gen PRO — recipe token-only validada). */

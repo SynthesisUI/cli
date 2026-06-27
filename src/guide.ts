@@ -131,6 +131,28 @@ its typographic identity. Load them once (any one approach):
     .map((f) => `\`${f}\``)
     .join(", ");
 
+  const layoutNames = Object.keys(doc.layouts ?? {});
+  const pagesSection =
+    layoutNames.length > 0
+      ? `
+## Full pages (templates)
+
+This system ships whole-page templates: ${layoutNames.map((n) => `\`${n}\``).join(", ")}.
+
+Materialize one as a real file:
+\`\`\`bash
+synthesisui page ${slug} ${layoutNames[0]}                 # Next .tsx (default)
+synthesisui page ${slug} ${layoutNames[0]} --target general  # plain HTML
+\`\`\`
+It writes a **deterministic scaffold** using this DS's \`.ds-*\` classes + inline token vars. **Refine it
+in place** — wire real data, split into components, swap the chart/icon/media placeholders — but keep the
+\`data-ds="${slug}"\` wrapper and the \`.ds-*\` classes so it stays on-system. Run \`synthesisui init\` once
+to set the target (next/general) and the output folder.
+
+---
+`
+      : "";
+
   const hasRules = (payload.rules?.length ?? 0) > 0;
   const rulesNote = hasRules
     ? `
@@ -230,7 +252,7 @@ those, not the versioned ones. The pinned files for this version — ${artifactL
 \`_synthesisui/ds/${slug}/v${version}/\`.
 
 ---
-
+${pagesSection}
 ## Building with the system
 
 **This system is for building real product UI** — pages, layouts, dashboards, whole flows.
