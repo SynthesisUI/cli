@@ -13,7 +13,7 @@ type AddOptions = {
   version?: number;
 };
 
-/** Root pointer at `_synthesisui/ds/<slug>/.lock` — names the active version. */
+/** Root pointer at `_synthesisui/ds/<slug>/.lock` - names the active version. */
 type RootLock = {
   slug: string;
   name: string;
@@ -75,7 +75,7 @@ export async function add(slug: string, opts: AddOptions): Promise<void> {
   for (const filename of cssArtifacts) {
     await writeFile(
       join(slugDir, filename),
-      `/* Active version (v${payload.version}). Managed by synthesisui — do not edit. */\n` +
+      `/* Active version (v${payload.version}). Managed by synthesisui - do not edit. */\n` +
         `@import "./v${payload.version}/${filename}";\n`,
       "utf8",
     );
@@ -96,8 +96,8 @@ export async function add(slug: string, opts: AddOptions): Promise<void> {
   const rules = payload.rules ?? [];
   if (rules.length > 0) {
     const body =
-      `# ${payload.name} — Rules\n\n` +
-      "> Accumulated rules for this design system. **Max authority — follow these first.**\n" +
+      `# ${payload.name} - Rules\n\n` +
+      "> Accumulated rules for this design system. **Max authority - follow these first.**\n" +
       `> Managed by synthesisui (edit in the studio). ${rules.length} rule(s).\n\n${rules
         .map((r) => `- ${r}`)
         .join("\n")}\n`;
@@ -115,7 +115,7 @@ export async function add(slug: string, opts: AddOptions): Promise<void> {
     );
   } else if (prev.version === v) {
     console.log(
-      `✓ ${payload.name} v${v} already installed${opts.version == null ? " (latest)" : ""} — refreshed`,
+      `✓ ${payload.name} v${v} already installed${opts.version == null ? " (latest)" : ""} - refreshed`,
     );
   } else if (v > prev.version) {
     console.log(

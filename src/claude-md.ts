@@ -28,7 +28,7 @@ async function readInstalled(projectRoot: string): Promise<InstalledLock[]> {
       const lock = JSON.parse(raw) as InstalledLock;
       locks.push({ slug: lock.slug, name: lock.name, version: lock.version });
     } catch {
-      // folder without a valid .lock — ignore
+      // folder without a valid .lock - ignore
     }
   }
   return locks;
@@ -41,7 +41,7 @@ function renderRegion(installed: InstalledLock[]): string {
   const lines = installed
     .map(
       (ds) =>
-        `- **${ds.name}** (\`${ds.slug}\`, v${ds.version}) — guide: \`_synthesisui/ds/${ds.slug}/v${ds.version}/GUIDE.md\``,
+        `- **${ds.name}** (\`${ds.slug}\`, v${ds.version}) - guide: \`_synthesisui/ds/${ds.slug}/v${ds.version}/GUIDE.md\``,
     )
     .join("\n");
 
@@ -51,12 +51,12 @@ This project uses design system(s) brought in by the \`synthesisui\` CLI. **When
 components, read the system's GUIDE.md and follow it:** use only semantic tokens
 (\`var(--ds-color-semantic-*)\`, \`--ds-spacing-*\`, etc.), scope the UI with \`data-ds="<slug>"\`,
 and reuse the \`.ds-*\` classes. Do not use raw values outside the system's scale. **To review a
-component, create an isolated sample page (e.g. \`app/synthesisui-samples/<component>/\`) — do not
+component, create an isolated sample page (e.g. \`app/synthesisui-samples/<component>/\`) - do not
 apply it to real production pages unless asked.**
 
 ${lines}
 
-_Block managed by the CLI — do not edit by hand; run \`synthesisui add <slug>\` to update._`;
+_Block managed by the CLI - do not edit by hand; run \`synthesisui add <slug>\` to update._`;
 
   return `${START}\n${body}\n${END}`;
 }

@@ -1,5 +1,5 @@
 /**
- * Minimal mirror of the registry contract — the CLI is standalone and does NOT
+ * Minimal mirror of the registry contract - the CLI is standalone and does NOT
  * import `@synthesisui-hub/ds-contracts` (it only consumes the endpoint JSON).
  * We type only what the CLI reads to generate GUIDE.md and the .lock.
  */
@@ -62,9 +62,9 @@ export type DesignSystemDocument = {
     patterns: Record<string, { description: string; trigger: string }>;
   };
   components: Record<string, ComponentRecipe>;
-  /** Biblioteca de blocos de engajamento (token-only) — categoria à parte. */
+  /** Biblioteca de blocos de engajamento (token-only) - categoria à parte. */
   blocks?: Record<string, ComponentRecipe>;
-  /** Templates de página inteira — materializáveis via `synthesisui page`. */
+  /** Templates de página inteira - materializáveis via `synthesisui page`. */
   layouts?: Record<string, { kind?: string; description?: string }>;
 };
 
@@ -75,7 +75,7 @@ export type RegistryPayload = RegistrySummary & {
   rules?: string[];
 };
 
-/** Resposta de `POST /api/ai/advisor` (advisor de engajamento — propõe, não executa). */
+/** Resposta de `POST /api/ai/advisor` (advisor de engajamento - propõe, não executa). */
 export type AdvisorProposal = {
   pattern: string;
   rationale: string;
@@ -98,7 +98,7 @@ export type GeneratedPage = {
   code: string;
 };
 
-/** `_synthesisui/config.json` — escrito por `init`, lido por `page`. */
+/** `_synthesisui/config.json` - escrito por `init`, lido por `page`. */
 export type ProjectConfig = {
   /** Alvo de materialização (hoje: Next ou HTML genérico). */
   target: "next" | "general";
@@ -106,7 +106,7 @@ export type ProjectConfig = {
   pagesDir: string;
 };
 
-/** Resposta de `POST /api/ai/generate` (chat-gen PRO — recipe token-only validada). */
+/** Resposta de `POST /api/ai/generate` (chat-gen PRO - recipe token-only validada). */
 export type GenerateResponse = {
   name: string;
   recipe: ComponentRecipe;

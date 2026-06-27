@@ -8,7 +8,7 @@ import { login } from "./commands/login.js";
 import { page } from "./commands/page.js";
 import { RegistryError } from "./registry.js";
 
-const HELP = `synthesisui — bring SynthesisUI design systems into your project
+const HELP = `synthesisui - bring SynthesisUI design systems into your project
 
 Usage:
   synthesisui login [options]              connect the CLI to your account (device-flow)
@@ -88,7 +88,7 @@ async function main() {
     case "add": {
       const slug = args[0];
       if (!slug) {
-        console.error("error: provide the slug — `synthesisui add <slug>`");
+        console.error("error: provide the slug - `synthesisui add <slug>`");
         process.exitCode = 1;
         return;
       }
@@ -97,7 +97,7 @@ async function main() {
         version = Number.parseInt(flags.version.replace(/^v/i, ""), 10);
         if (!Number.isInteger(version) || version < 1) {
           console.error(
-            `error: invalid --version "${flags.version}" — use an integer ≥ 1`,
+            `error: invalid --version "${flags.version}" - use an integer ≥ 1`,
           );
           process.exitCode = 1;
           return;
@@ -120,7 +120,7 @@ async function main() {
       const template = args[1];
       if (!slug || !template) {
         console.error(
-          "error: provide slug and template — `synthesisui page <slug> <template>`",
+          "error: provide slug and template - `synthesisui page <slug> <template>`",
         );
         process.exitCode = 1;
         return;
@@ -130,7 +130,7 @@ async function main() {
         version = Number.parseInt(flags.version.replace(/^v/i, ""), 10);
         if (!Number.isInteger(version) || version < 1) {
           console.error(
-            `error: invalid --version "${flags.version}" — use an integer ≥ 1`,
+            `error: invalid --version "${flags.version}" - use an integer ≥ 1`,
           );
           process.exitCode = 1;
           return;
@@ -146,7 +146,7 @@ async function main() {
       const valueProp = args.join(" ").trim();
       if (!valueProp) {
         console.error(
-          'error: describe your product — `synthesisui advise "<value proposition>"`',
+          'error: describe your product - `synthesisui advise "<value proposition>"`',
         );
         process.exitCode = 1;
         return;
@@ -158,7 +158,7 @@ async function main() {
       const description = args.join(" ").trim();
       if (!description) {
         console.error(
-          'error: describe the component — `synthesisui generate "<description>"`',
+          'error: describe the component - `synthesisui generate "<description>"`',
         );
         process.exitCode = 1;
         return;
