@@ -12,7 +12,7 @@ const HELP = `synthesisui - bring SynthesisUI design systems into your project
 
 Usage:
   synthesisui login [options]              connect the CLI to your account (device-flow)
-  synthesisui init [options]               write _synthesisui/config.json (target + pages dir)
+  synthesisui init [options]               write _synthesisui/config.json (target, dirs); --ds to bring one in
   synthesisui list [options]               list the published design systems
   synthesisui add <slug> [options]         materialize a DS into _synthesisui/ds/<slug>/
   synthesisui page <slug> <template>       materialize a whole page from a DS template
@@ -23,15 +23,18 @@ Options:
   --registry <url>   registry URL (or env SYNTHESISUI_REGISTRY_URL)
   --dir <path>       consumer project root (default: current directory)
   --version <n>      install a specific version (default: latest)
-  --ds <slug>        target design system for generate (default: the installed one)
+  --ds <slug>        init: bring this DS in right away · generate: target DS (default: installed)
   --name <name>      preferred component name for generate
   --target <t>       page/init target: next | general (default: next)
+  --pages-dir <dir>  init: folder for generated pages (default: app)
+  --components-dir <dir>  init: folder where components live (default: components)
   --out <path>       output path for the generated page (default: <pagesDir>/<file>)
   -h, --help         this help
 
 Examples:
   synthesisui login
   synthesisui init --target next
+  synthesisui init --target next --ds halogen   bootstrap + bring a system in
   synthesisui list
   synthesisui add halogen
   synthesisui add halogen --version 3
@@ -112,7 +115,14 @@ async function main() {
     case "init": {
       const target =
         typeof flags.target === "string" ? flags.target : undefined;
-      await init({ dir, target });
+      const pagesDir =
+        typeof flags["pages-dir"] === "string" ? flags["pages-dir"] : undefined;
+      const componentsDir =
+        typeof flags["components-dir"] === "string"
+          ? flags["components-dir"]
+          : undefined;
+      const ds = typeof flags.ds === "string" ? flags.ds : undefined;
+      await init({ dir, registry, target, pagesDir, componentsDir, ds });
       break;
     }
     case "page": {

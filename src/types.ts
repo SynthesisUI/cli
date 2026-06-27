@@ -115,6 +115,8 @@ export type ProjectConfig = {
   target: "next" | "general";
   /** Pasta onde as páginas geradas são escritas (ex.: "app"). */
   pagesDir: string;
+  /** Pasta onde os componentes vivem (o agente escreve os recipes aqui). */
+  componentsDir: string;
 };
 
 /** Resposta de `POST /api/ai/generate` (chat-gen PRO - recipe token-only validada). */

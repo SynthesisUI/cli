@@ -1,17 +1,26 @@
 import { DEFAULT_CONFIG, writeProjectConfig } from "../config.js";
 import type { ProjectConfig } from "../types.js";
+import { add } from "./add.js";
 
 type InitOptions = {
   dir?: string;
+  registry?: string;
   /** Framework target for materialized pages. */
   target?: string;
   /** Folder where generated pages are written. */
   pagesDir?: string;
+  /** Folder where components live (the agent writes recipes here). */
+  componentsDir?: string;
+  /** Optionally bring a design system in right away (tokens + philosophy + rules). */
+  ds?: string;
 };
 
 /**
- * Writes `_synthesisui/config.json` - where `synthesisui page` materializes
- * pages and which framework to target. Committable; safe to re-run.
+ * Bootstraps a project for SynthesisUI: writes `_synthesisui/config.json`
+ * (where `page` materializes pages, where components live, which framework to
+ * target) and - with `--ds <slug>` - immediately brings that system in, so the
+ * project lands with tokens, philosophy, rules and a CLAUDE.md in one step.
+ * Committable; safe to re-run.
  */
 export async function init(opts: InitOptions): Promise<void> {
   const root = opts.dir ?? process.cwd();
@@ -21,15 +30,28 @@ export async function init(opts: InitOptions): Promise<void> {
     target,
     pagesDir:
       opts.pagesDir ?? (target === "next" ? "app" : DEFAULT_CONFIG.pagesDir),
+    componentsDir: opts.componentsDir ?? DEFAULT_CONFIG.componentsDir,
   };
   await writeProjectConfig(root, config);
 
   console.log("✓ wrote _synthesisui/config.json");
-  console.log(`  target:   ${config.target}`);
-  console.log(`  pagesDir: ${config.pagesDir}`);
+  console.log(`  target:        ${config.target}`);
+  console.log(`  pagesDir:      ${config.pagesDir}`);
+  console.log(`  componentsDir: ${config.componentsDir}`);
+
+  // --ds bootstraps the project with a system in one step (tokens + philosophy
+  // + rules + CLAUDE.md all arrive via `add`).
+  if (opts.ds) {
+    console.log("");
+    await add(opts.ds, { registry: opts.registry, dir: root });
+    return;
+  }
+
   console.log("");
   console.log("Next steps:");
-  console.log("  • synthesisui add <slug>            bring a design system in");
+  console.log(
+    "  • synthesisui add <slug>              bring a design system in",
+  );
   console.log(
     "  • synthesisui page <slug> <template>  materialize a full page",
   );

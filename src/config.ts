@@ -52,6 +52,7 @@ export async function writeToken(
 export const DEFAULT_CONFIG: ProjectConfig = {
   target: "next",
   pagesDir: "app",
+  componentsDir: "components",
 };
 
 const projectConfigPath = (root: string) =>
@@ -68,6 +69,10 @@ export async function readProjectConfig(root: string): Promise<ProjectConfig> {
         typeof parsed.pagesDir === "string" && parsed.pagesDir
           ? parsed.pagesDir
           : DEFAULT_CONFIG.pagesDir,
+      componentsDir:
+        typeof parsed.componentsDir === "string" && parsed.componentsDir
+          ? parsed.componentsDir
+          : DEFAULT_CONFIG.componentsDir,
     };
   } catch {
     return DEFAULT_CONFIG;
