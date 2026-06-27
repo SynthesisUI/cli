@@ -66,6 +66,11 @@ export type DesignSystemDocument = {
   blocks?: Record<string, ComponentRecipe>;
   /** Templates de página inteira - materializáveis via `synthesisui page`. */
   layouts?: Record<string, { kind?: string; description?: string }>;
+  /** Filosofia estruturada (Pilar 4) → materializada em `philosophy.md`. */
+  philosophy?: {
+    context?: string;
+    sections?: { key: string; title: string; body: string }[];
+  };
 };
 
 export type RegistryPayload = RegistrySummary & {
