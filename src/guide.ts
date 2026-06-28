@@ -164,7 +164,7 @@ place** - wire real data, split into components, swap the chart/icon/media place
       ? `**Read \`_synthesisui/ds/${slug}/rules.md\` FIRST and obey it above everything else** - it carries this system's accumulated, project-specific rules; on any conflict they win.`
       : "",
     hasPhilosophy
-      ? `**Then read \`_synthesisui/ds/${slug}/philosophy.md\`** - the mission, principles, voice and motion doctrine. Let it shape every screen you build.`
+      ? `**${hasRules ? "Then read" : "Read"} \`_synthesisui/ds/${slug}/philosophy.md\`** - the mission, principles, voice and motion doctrine. Let it shape every screen you build.`
       : "",
   ].filter(Boolean);
   const rulesNote =
