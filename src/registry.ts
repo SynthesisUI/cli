@@ -66,10 +66,10 @@ export async function fetchDesignSystem(
 }
 
 /**
- * Fetches a whole page generated from a DS template (`?page=&target=`). The
+ * Fetches a whole page generated from a DS template (`?template=&target=`). The
  * server codegens it from `document.layouts[<template>]`; the CLI just writes it.
  */
-export async function fetchPage(
+export async function fetchTemplate(
   base: string,
   slug: string,
   template: string,
@@ -77,7 +77,7 @@ export async function fetchPage(
   version?: number,
 ): Promise<GeneratedPage> {
   const url = new URL(`${base}/api/registry/ds/${encodeURIComponent(slug)}`);
-  url.searchParams.set("page", template);
+  url.searchParams.set("template", template);
   url.searchParams.set("target", target);
   if (version != null) url.searchParams.set("version", String(version));
 

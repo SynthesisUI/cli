@@ -17,7 +17,7 @@ type InitOptions = {
 
 /**
  * Bootstraps a project for SynthesisUI: writes `_synthesisui/config.json`
- * (where `page` materializes pages, where components live, which framework to
+ * (where `template` materializes pages, where components live, which framework to
  * target) and - with `--ds <slug>` - immediately brings that system in, so the
  * project lands with tokens, philosophy, rules and a CLAUDE.md in one step.
  * Committable; safe to re-run.
@@ -53,6 +53,6 @@ export async function init(opts: InitOptions): Promise<void> {
     "  • synthesisui add <slug>              bring a design system in",
   );
   console.log(
-    "  • synthesisui page <slug> <template>  materialize a full page",
+    "  • synthesisui template <slug> <name>  materialize a full page",
   );
 }
