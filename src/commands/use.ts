@@ -96,11 +96,13 @@ export async function use(
     "Read these files in the project first (highest authority first):",
     ...readFirst,
     "",
-    "Follow this contract:",
+    `Follow this contract (target framework: ${config.target}):`,
+    `- First check whether this refers to UI that already exists in the project (search ` +
+      `\`${config.componentsDir}/\` and \`${config.pagesDir}/\`). If it does, modify only what's ` +
+      `needed and keep the rest of the file intact and on-system. If it doesn't, build it new - ` +
+      `components in \`${config.componentsDir}/\`, pages in \`${config.pagesDir}/\`.`,
     `- Scope the markup with \`data-ds="${slug}"\` (or rely on it at the app root).`,
     stylingRule,
-    `- Target framework: ${config.target}. Put new components in \`${config.componentsDir}/\` ` +
-      `and pages in \`${config.pagesDir}/\`.`,
     config.target === "next"
       ? '- Make sure `tokens.css` + `theme.css` are imported in the global CSS (see the GUIDE\'s "How to apply").'
       : '- Make sure `tokens.css` is imported in the global CSS (see the GUIDE\'s "How to apply").',
