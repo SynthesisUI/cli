@@ -56,13 +56,20 @@ function parseFlags(argv: string[]): {
     if (arg === "-h" || arg === "--help") {
       flags.help = true;
     } else if (arg.startsWith("--")) {
-      const key = arg.slice(2);
-      const next = argv[i + 1];
-      if (next !== undefined && !next.startsWith("--")) {
-        flags[key] = next;
-        i++;
+      const body = arg.slice(2);
+      const eq = body.indexOf("=");
+      if (eq !== -1) {
+        // `--key=value` form (e.g. --out=templates/page.tsx)
+        flags[body.slice(0, eq)] = body.slice(eq + 1);
       } else {
-        flags[key] = true;
+        // `--key value` form
+        const next = argv[i + 1];
+        if (next !== undefined && !next.startsWith("--")) {
+          flags[body] = next;
+          i++;
+        } else {
+          flags[body] = true;
+        }
       }
     } else {
       positionals.push(arg);
