@@ -170,10 +170,23 @@ export async function add(slug: string, opts: AddOptions): Promise<void> {
     `  CLAUDE.md ${claudeMd.created ? "created" : "updated"} (${claudeMd.count} system(s) installed)`,
   );
   console.log("");
+  const hasTheme = cssArtifacts.includes("theme.css");
   console.log("Next steps:");
   console.log(
-    `  • @import "_synthesisui/ds/${payload.slug}/tokens.css" in your global CSS (stable path)`,
+    "  • In your global CSS, import the system (use a path relative to that CSS file -",
   );
+  console.log(
+    "    from `app/globals.css` in a Next App Router project that means a leading `../`):",
+  );
+  console.log(`      @import "_synthesisui/ds/${payload.slug}/tokens.css";`);
+  if (hasTheme) {
+    console.log(
+      `      @import "_synthesisui/ds/${payload.slug}/theme.css";   /* Tailwind v4 utilities - required */`,
+    );
+    console.log(
+      '    (import `theme.css` after `tokens.css`, both after `@import "tailwindcss";`)',
+    );
+  }
   console.log(`  • scope your UI with data-ds="${payload.slug}"`);
   console.log(
     `  • details and rules in _synthesisui/ds/${payload.slug}/v${v}/GUIDE.md`,

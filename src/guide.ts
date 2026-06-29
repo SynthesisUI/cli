@@ -195,11 +195,16 @@ ${meta.narrative}
 ${rulesNote}
 ## How to apply
 
-1. Import the tokens once in your project's global CSS:
+1. Import the system once in your project's global CSS, using a path **relative to that CSS
+   file** - from \`app/globals.css\` in a Next App Router project that means a leading \`../\`:
    \`\`\`css
-   @import "./_synthesisui/ds/${slug}/tokens.css";
+   @import "../_synthesisui/ds/${slug}/tokens.css";
    \`\`\`
-   (adjust the relative path to where your CSS lives.)
+   (drop the \`../\` if your global CSS sits at the project root.)${
+     hasTailwind
+       ? `\n   **Using Tailwind (this project's default)? You also need \`theme.css\` right after \`tokens.css\` -\n   without it the DS-backed utilities (\`bg-primary\`, \`p-md\`…) aren't generated and the UI renders\n   unstyled. See "Styling with Tailwind v4" below for the full import block.**`
+       : ""
+   }
 
 2. Wrap the tree that should use the system with the scope attribute:
    \`\`\`html
