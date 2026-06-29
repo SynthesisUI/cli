@@ -108,6 +108,15 @@ export async function use(
       : '- Make sure `tokens.css` is imported in the global CSS (see the GUIDE\'s "How to apply").',
     "- Wire the behavior yourself (open/close, focus, routing) - the system ships the looks, not the JS.",
     "",
+    "Composition (make it look composed, not just correct):",
+    config.target === "next"
+      ? "- Cap page content with a max-width container and center it - this DS ships `max-w-app` for " +
+        "dashboards/wide UI and `max-w-prose` for text columns. Don't stretch content edge-to-edge."
+      : "- Cap page content with a max-width container and center it (don't stretch edge-to-edge): a " +
+        "wide width for dashboards, a ~70ch column for text.",
+    "- Give the page a complete, intentional layout: clear vertical rhythm, sensible density and " +
+      "grouped sections. Never leave a single thin row floating on an empty screen.",
+    "",
     "Deliver senior-level, production-quality code: clean structure, accessible (ARIA + keyboard), and responsive.",
   ].join("\n");
 
