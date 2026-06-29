@@ -5,7 +5,7 @@ import { generate } from "./commands/generate.js";
 import { init } from "./commands/init.js";
 import { list } from "./commands/list.js";
 import { login } from "./commands/login.js";
-import { page } from "./commands/page.js";
+import { template } from "./commands/template.js";
 import { use } from "./commands/use.js";
 import { RegistryError } from "./registry.js";
 
@@ -16,7 +16,7 @@ Usage:
   synthesisui init [options]               write _synthesisui/config.json (target, dirs); --ds to bring one in
   synthesisui list [options]               list the published design systems
   synthesisui add <slug> [options]         materialize a DS into _synthesisui/ds/<slug>/
-  synthesisui page <slug> <template>       materialize a whole page from a DS template
+  synthesisui template <slug> <name>       materialize a whole page from a DS template
   synthesisui use <slug> "<intent>"        print a ready-to-paste agent prompt to build/modify on-system
   synthesisui advise "<value prop>"        engagement-pattern proposals for this project (login required)
   synthesisui generate "<desc>"            generate a token-only component recipe for your DS (login required)
@@ -27,10 +27,10 @@ Options:
   --version <n>      install a specific version (default: latest)
   --ds <slug>        init: bring this DS in right away · generate: target DS (default: installed)
   --name <name>      preferred component name for generate
-  --target <t>       page/init target: next | general (default: next)
+  --target <t>       template/init target: next | general (default: next)
   --pages-dir <dir>  init: folder for generated pages (default: app)
   --components-dir <dir>  init: folder where components live (default: components)
-  --out <path>       output path for the generated page (default: <pagesDir>/<file>)
+  --out <path>       output path for the generated template (default: <pagesDir>/<file>)
   -h, --help         this help
 
 Examples:
@@ -40,8 +40,8 @@ Examples:
   synthesisui list
   synthesisui add halogen
   synthesisui add halogen --version 3
-  synthesisui page halogen dashboard-sidebar
-  synthesisui page halogen landing --out app/page.tsx
+  synthesisui template halogen dashboard-sidebar
+  synthesisui template halogen landing --out app/page.tsx
   synthesisui use halogen "a pricing section with three tiers and a highlighted plan"
   synthesisui use halogen "make the card shadow softer in components/StatCard.tsx"
   synthesisui advise "habit-building app for tracking personal finances"
@@ -136,12 +136,20 @@ async function main() {
       await init({ dir, registry, target, pagesDir, componentsDir, ds });
       break;
     }
-    case "page": {
-      const slug = args[0];
-      const template = args[1];
-      if (!slug || !template) {
+    // `page` is the legacy alias (renamed to `template`); it still works so
+    // GUIDE.md files materialized before the rename don't break.
+    case "page":
+    case "template": {
+      if (command === "page") {
         console.error(
-          "error: provide slug and template - `synthesisui page <slug> <template>`",
+          "note: `synthesisui page` was renamed to `synthesisui template` - the old name still works for now.",
+        );
+      }
+      const slug = args[0];
+      const name = args[1];
+      if (!slug || !name) {
+        console.error(
+          "error: provide slug and template name - `synthesisui template <slug> <name>`",
         );
         process.exitCode = 1;
         return;
@@ -160,7 +168,7 @@ async function main() {
       const target =
         typeof flags.target === "string" ? flags.target : undefined;
       const out = typeof flags.out === "string" ? flags.out : undefined;
-      await page(slug, template, { registry, dir, out, target, version });
+      await template(slug, name, { registry, dir, out, target, version });
       break;
     }
     case "use": {

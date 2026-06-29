@@ -141,8 +141,8 @@ This system ships whole-page templates: ${layoutNames.map((n) => `\`${n}\``).joi
 
 Materialize one as a real file:
 \`\`\`bash
-synthesisui page ${slug} ${layoutNames[0]}                 # Next .tsx + .css (default)
-synthesisui page ${slug} ${layoutNames[0]} --target general  # single self-contained HTML
+synthesisui template ${slug} ${layoutNames[0]}                 # Next .tsx + .css (default)
+synthesisui template ${slug} ${layoutNames[0]} --target general  # single self-contained HTML
 \`\`\`
 It writes a **deterministic scaffold**: the page uses this DS's \`.ds-*\` recipe classes + layout
 path-classes, paired with a co-located scoped CSS (Next target) that carries the **responsive** media

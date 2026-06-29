@@ -64,7 +64,7 @@ export type DesignSystemDocument = {
   components: Record<string, ComponentRecipe>;
   /** Biblioteca de blocos de engajamento (token-only) - categoria à parte. */
   blocks?: Record<string, ComponentRecipe>;
-  /** Templates de página inteira - materializáveis via `synthesisui page`. */
+  /** Templates de página inteira - materializáveis via `synthesisui template`. */
   layouts?: Record<string, { kind?: string; description?: string }>;
   /** Filosofia estruturada (Pilar 4) → materializada em `philosophy.md`. */
   philosophy?: {

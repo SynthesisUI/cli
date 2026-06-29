@@ -1,9 +1,9 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { readProjectConfig, resolveRegistry } from "../config.js";
-import { fetchPage } from "../registry.js";
+import { fetchTemplate } from "../registry.js";
 
-type PageOptions = {
+type TemplateOptions = {
   registry?: string;
   dir?: string;
   /** Override the output path (relative to project root or absolute). */
@@ -21,10 +21,10 @@ type PageOptions = {
  * path classes; the co-located CSS (Next target) carries the responsive media
  * queries + the CSS-only hamburger, so it re-vests once `tokens.css` is in.
  */
-export async function page(
+export async function template(
   slug: string,
-  template: string,
-  opts: PageOptions,
+  name: string,
+  opts: TemplateOptions,
 ): Promise<void> {
   const base = resolveRegistry(opts.registry);
   const root = opts.dir ?? process.cwd();
@@ -34,8 +34,8 @@ export async function page(
       ? opts.target
       : config.target;
 
-  console.log(`→ generating "${template}" from "${slug}" (${target}) …`);
-  const generated = await fetchPage(base, slug, template, target, opts.version);
+  console.log(`→ generating "${name}" from "${slug}" (${target}) …`);
+  const generated = await fetchTemplate(base, slug, name, target, opts.version);
 
   // --out targets the page (1st file); sibling files (e.g. the CSS) land in the
   // same directory. Without --out, everything goes under <pagesDir>.
