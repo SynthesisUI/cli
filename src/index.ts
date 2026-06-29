@@ -6,6 +6,7 @@ import { init } from "./commands/init.js";
 import { list } from "./commands/list.js";
 import { login } from "./commands/login.js";
 import { page } from "./commands/page.js";
+import { use } from "./commands/use.js";
 import { RegistryError } from "./registry.js";
 
 const HELP = `synthesisui - bring SynthesisUI design systems into your project
@@ -16,6 +17,7 @@ Usage:
   synthesisui list [options]               list the published design systems
   synthesisui add <slug> [options]         materialize a DS into _synthesisui/ds/<slug>/
   synthesisui page <slug> <template>       materialize a whole page from a DS template
+  synthesisui use <slug> "<intent>"        print a ready-to-paste agent prompt to build/modify on-system
   synthesisui advise "<value prop>"        engagement-pattern proposals for this project (login required)
   synthesisui generate "<desc>"            generate a token-only component recipe for your DS (login required)
 
@@ -40,6 +42,8 @@ Examples:
   synthesisui add halogen --version 3
   synthesisui page halogen dashboard-sidebar
   synthesisui page halogen landing --out app/page.tsx
+  synthesisui use halogen "a pricing section with three tiers and a highlighted plan"
+  synthesisui use halogen "make the card shadow softer in components/StatCard.tsx"
   synthesisui advise "habit-building app for tracking personal finances"
   synthesisui generate "an upgrade banner with a title, message and a primary CTA"
 `;
@@ -157,6 +161,19 @@ async function main() {
         typeof flags.target === "string" ? flags.target : undefined;
       const out = typeof flags.out === "string" ? flags.out : undefined;
       await page(slug, template, { registry, dir, out, target, version });
+      break;
+    }
+    case "use": {
+      const slug = args[0];
+      if (!slug) {
+        console.error(
+          'error: provide the slug and your intent - `synthesisui use <slug> "<intent>"`',
+        );
+        process.exitCode = 1;
+        return;
+      }
+      const intent = args.slice(1).join(" ").trim();
+      await use(slug, intent, { dir });
       break;
     }
     case "advise": {
