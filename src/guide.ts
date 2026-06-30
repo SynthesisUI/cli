@@ -107,6 +107,34 @@ its typographic identity. Load them once (any one approach):
 ---
 `
     : "";
+
+  // Libraries the system references but doesn't bundle - the agent should
+  // install them when it actually renders icons/charts (INS-19).
+  const iconLibraries = doc.icons?.libraries ?? [];
+  const hasCharts = !!doc.charts && Object.keys(doc.charts).length > 0;
+  const depLines = [
+    iconLibraries.includes("lucide")
+      ? "- **Icons** - components reference Lucide icon names. Run `npm i lucide-react` " +
+        "(or swap in your own icon set) to render them."
+      : "",
+    hasCharts
+      ? "- **Charts** - charts are themed through your series tokens, but you bring the " +
+        "renderer. Run `npm i recharts` (the gallery uses Recharts)."
+      : "",
+  ].filter(Boolean);
+  const depsSection = depLines.length
+    ? `
+## Dependencies
+
+Beyond loading the fonts above, the system references libraries it doesn't bundle - install them
+when you actually render that UI:
+
+${depLines.join("\n")}
+
+---
+`
+    : "";
+
   const weights = Object.keys(foundations.typography.weights);
   const hasAlt =
     foundations.color.semanticAlt &&
@@ -226,7 +254,7 @@ ${
    \`\`\`
 `
     : ""
-}${fontsSection}${
+}${fontsSection}${depsSection}${
   hasTailwind
     ? `
 ## Styling with Tailwind v4 (preferred in this project)
