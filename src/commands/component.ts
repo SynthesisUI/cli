@@ -1,7 +1,11 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { resolveRegistry } from "../config.js";
-import { fetchComponent } from "../registry.js";
+import { fetchComponent, RegistryError } from "../registry.js";
+
+/** Slugs/names are kebab-case by contract; reject anything else before it ever
+ *  reaches a filesystem path (defense-in-depth against `../` traversal). */
+const SAFE_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 type ComponentOptions = {
   registry?: string;
@@ -26,8 +30,18 @@ export async function component(
   const base = resolveRegistry(opts.registry);
   const root = opts.dir ?? process.cwd();
 
+  if (!SAFE_NAME.test(slug)) {
+    throw new RegistryError(`Invalid slug "${slug}".`);
+  }
+
   console.log(`→ fetching "${name}" from "${slug}" …`);
   const res = await fetchComponent(base, slug, name, opts.version);
+
+  // The server should only ever return a kebab-case name, but never trust a
+  // network value as a path segment.
+  if (!SAFE_NAME.test(res.name)) {
+    throw new RegistryError(`Registry returned an unsafe component name.`);
+  }
 
   const dir = join(root, "_synthesisui", "ds", slug, "components");
   await mkdir(dir, { recursive: true });
