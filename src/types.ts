@@ -66,6 +66,10 @@ export type DesignSystemDocument = {
   blocks?: Record<string, ComponentRecipe>;
   /** Templates de página inteira - materializáveis via `synthesisui template`. */
   layouts?: Record<string, { kind?: string; description?: string }>;
+  /** Bibliotecas de ícones referenciadas (ex.: lucide) - vira dep no GUIDE. */
+  icons?: { libraries?: string[]; default?: string };
+  /** Charts do DS (token-themed); presença vira dep de renderer no GUIDE. */
+  charts?: Record<string, unknown>;
   /** Filosofia estruturada (Pilar 4) → materializada em `philosophy.md`. */
   philosophy?: {
     context?: string;
