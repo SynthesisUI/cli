@@ -1,6 +1,7 @@
 import { readToken } from "./config.js";
 import type {
   AdvisorResponse,
+  FetchedComponent,
   GeneratedPage,
   GenerateResponse,
   RegistryPayload,
@@ -95,6 +96,37 @@ export async function fetchTemplate(
     );
   }
   return (await res.json()) as GeneratedPage;
+}
+
+/**
+ * Fetches ONE component from a DS (`?component=<name>`): its recipe + compiled
+ * CSS. Granular "bring specific" - the system must exist; works for public DS
+ * without login (private/owned needs the token).
+ */
+export async function fetchComponent(
+  base: string,
+  slug: string,
+  name: string,
+  version?: number,
+): Promise<FetchedComponent> {
+  const url = new URL(`${base}/api/registry/ds/${encodeURIComponent(slug)}`);
+  url.searchParams.set("component", name);
+  if (version != null) url.searchParams.set("version", String(version));
+
+  const res = await request(url.toString());
+  if (res.status === 404) {
+    const body = (await res.json().catch(() => ({}))) as { message?: string };
+    throw new RegistryError(
+      body.message ??
+        `No component "${name}" in "${slug}". Run \`synthesisui add ${slug}\` and check its components.`,
+    );
+  }
+  if (!res.ok) {
+    throw new RegistryError(
+      `Registry responded ${res.status} while fetching "${name}".`,
+    );
+  }
+  return (await res.json()) as FetchedComponent;
 }
 
 /**

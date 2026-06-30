@@ -132,3 +132,12 @@ export type GenerateResponse = {
   model: string;
   tries: number;
 };
+
+/** Resposta de `?component=<name>` - UM componente do DS (recipe + CSS compilado). */
+export type FetchedComponent = {
+  slug: string;
+  version: number;
+  name: string;
+  recipe: ComponentRecipe;
+  css: string;
+};
