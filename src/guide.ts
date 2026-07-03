@@ -179,6 +179,18 @@ place** - wire real data, split into components, swap the chart/icon/media place
 \`data-ds="${slug}"\` wrapper and the \`.ds-*\` / layout classes so it stays on-system. Run
 \`synthesisui init\` once to set the target (next/general) and the output folder.
 
+## Single components as YOUR code
+
+Bring one component in as a real, typed React component (variants become props):
+\`\`\`bash
+synthesisui component ${slug} button
+\`\`\`
+It writes \`<componentsDir>/button/\` with \`button.tsx\` (+ colocated \`button.css\` in the default
+\`styles: "css"\` flavor, or Tailwind utilities inline with \`styles: "tailwind"\` - set once via
+\`synthesisui init --styles tailwind\`). Import and render: \`import { Button } from "components/button"\`.
+The boundary: tokens are global (\`tokens.css\` + the \`data-ds\` root attribute, once per app);
+everything a component owns lives in its own folder.
+
 ---
 `
       : "";

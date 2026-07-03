@@ -113,7 +113,7 @@ export type GeneratedPage = {
   files: GeneratedFile[];
 };
 
-/** `_synthesisui/config.json` - escrito por `init`, lido por `page`. */
+/** `_synthesisui/config.json` - escrito por `init`, lido por `page`/`component`. */
 export type ProjectConfig = {
   /** Alvo de materialização (hoje: Next ou HTML genérico). */
   target: "next" | "general";
@@ -121,6 +121,14 @@ export type ProjectConfig = {
   pagesDir: string;
   /** Pasta onde os componentes vivem (o agente escreve os recipes aqui). */
   componentsDir: string;
+  /**
+   * Como `component` materializa o código gerado:
+   * - "css" (default): TSX fino + <name>.css colocado (só classes ds-*
+   *   referenciando os tokens) - atualizar o css re-veste o componente.
+   * - "tailwind": TSX com utilities inline resolvidas pelo adapter `theme.css`
+   *   (@theme) - o código é seu; tokens ainda propagam via vars.
+   */
+  styles: "css" | "tailwind";
 };
 
 /** Resposta de `POST /api/ai/generate` (chat-gen PRO - recipe token-only validada). */

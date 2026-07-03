@@ -18,7 +18,7 @@ Usage:
   synthesisui list [options]               list the published design systems
   synthesisui add <slug> [options]         materialize a DS into _synthesisui/ds/<slug>/
   synthesisui template <slug> <name>       materialize a whole page from a DS template
-  synthesisui component <slug> <name>      bring one component (recipe + css) into the project
+  synthesisui component <slug> <name>      bring one component in - artifacts + YOUR <Pascal>.tsx in componentsDir
   synthesisui use <slug> "<intent>"        print a ready-to-paste agent prompt to build/modify on-system
   synthesisui advise "<value prop>"        engagement-pattern proposals for this project (login required)
   synthesisui generate "<desc>"            generate a token-only component recipe for your DS (login required)
@@ -32,6 +32,8 @@ Options:
   --target <t>       template/init target: next | general (default: next)
   --pages-dir <dir>  init: folder for generated pages (default: app)
   --components-dir <dir>  init: folder where components live (default: components)
+  --styles <s>       init: component code flavor: css | tailwind (default: css)
+  --artifacts-only   component: skip the .tsx materialization (recipe + css only)
   --out <path>       output path for the generated template (default: <pagesDir>/<file>)
   -h, --help         this help
 
@@ -136,7 +138,17 @@ async function main() {
           ? flags["components-dir"]
           : undefined;
       const ds = typeof flags.ds === "string" ? flags.ds : undefined;
-      await init({ dir, registry, target, pagesDir, componentsDir, ds });
+      const styles =
+        typeof flags.styles === "string" ? flags.styles : undefined;
+      await init({
+        dir,
+        registry,
+        target,
+        pagesDir,
+        componentsDir,
+        styles,
+        ds,
+      });
       break;
     }
     // `page` is the legacy alias (renamed to `template`); it still works so
@@ -195,7 +207,12 @@ async function main() {
           return;
         }
       }
-      await component(slug, name, { registry, dir, version });
+      await component(slug, name, {
+        registry,
+        dir,
+        version,
+        artifactsOnly: flags["artifacts-only"] === true,
+      });
       break;
     }
     case "use": {

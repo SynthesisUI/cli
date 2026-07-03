@@ -11,6 +11,8 @@ type InitOptions = {
   pagesDir?: string;
   /** Folder where components live (the agent writes recipes here). */
   componentsDir?: string;
+  /** How `component` materializes code: colocated CSS or Tailwind utilities. */
+  styles?: string;
   /** Optionally bring a design system in right away (tokens + philosophy + rules). */
   ds?: string;
 };
@@ -31,6 +33,7 @@ export async function init(opts: InitOptions): Promise<void> {
     pagesDir:
       opts.pagesDir ?? (target === "next" ? "app" : DEFAULT_CONFIG.pagesDir),
     componentsDir: opts.componentsDir ?? DEFAULT_CONFIG.componentsDir,
+    styles: opts.styles === "tailwind" ? "tailwind" : "css",
   };
   await writeProjectConfig(root, config);
 
@@ -38,6 +41,7 @@ export async function init(opts: InitOptions): Promise<void> {
   console.log(`  target:        ${config.target}`);
   console.log(`  pagesDir:      ${config.pagesDir}`);
   console.log(`  componentsDir: ${config.componentsDir}`);
+  console.log(`  styles:        ${config.styles}`);
 
   // --ds bootstraps the project with a system in one step (tokens + philosophy
   // + rules + CLAUDE.md all arrive via `add`).
