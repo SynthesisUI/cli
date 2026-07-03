@@ -1,6 +1,7 @@
 import { readToken } from "./config.js";
 import type {
   AdvisorResponse,
+  ChangelogResponse,
   FetchedComponent,
   GeneratedPage,
   GenerateResponse,
@@ -197,4 +198,26 @@ export async function postGenerate(
     );
   }
   return (await res.json()) as GenerateResponse;
+}
+
+/** Changelog determinístico entre duas versões (Marco B) - `?changelog&from=N`. */
+export async function fetchChangelog(
+  base: string,
+  slug: string,
+  from: number,
+  to?: number,
+): Promise<ChangelogResponse> {
+  const url = new URL(`${base}/api/registry/ds/${encodeURIComponent(slug)}`);
+  url.searchParams.set("changelog", "");
+  url.searchParams.set("from", String(from));
+  if (to != null) url.searchParams.set("to", String(to));
+
+  const res = await request(url.toString());
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { message?: string };
+    throw new RegistryError(
+      body.message ?? `Registry responded ${res.status} for the changelog.`,
+    );
+  }
+  return (await res.json()) as ChangelogResponse;
 }

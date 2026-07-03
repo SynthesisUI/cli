@@ -149,3 +149,21 @@ export type FetchedComponent = {
   recipe: ComponentRecipe;
   css: string;
 };
+
+/** Resposta de `?changelog&from=N[&to=M]` (Marco B). O CLI consome o markdown
+ *  pronto + o resumo estruturado; o diff em si é calculado no servidor. */
+export type ChangelogResponse = {
+  slug: string;
+  from: number;
+  to: number;
+  changelog: {
+    tokens: unknown[];
+    components: { name: string; kind: string }[];
+    blocks: { name: string; kind: string }[];
+    layouts: { name: string; kind: string }[];
+    charts: { name: string; kind: string }[];
+    breaking: string[];
+    isEmpty: boolean;
+  };
+  markdown: string;
+};

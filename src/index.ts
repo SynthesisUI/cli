@@ -7,6 +7,7 @@ import { init } from "./commands/init.js";
 import { list } from "./commands/list.js";
 import { login } from "./commands/login.js";
 import { template } from "./commands/template.js";
+import { upgrade } from "./commands/upgrade.js";
 import { use } from "./commands/use.js";
 import { RegistryError } from "./registry.js";
 
@@ -19,6 +20,7 @@ Usage:
   synthesisui add <slug> [options]         materialize a DS into _synthesisui/ds/<slug>/
   synthesisui template <slug> <name>       materialize a whole page from a DS template
   synthesisui component <slug> <name>      bring one component in - artifacts + YOUR <Pascal>.tsx in componentsDir
+  synthesisui upgrade <slug>               update an installed DS + regenerate your components + migration brief
   synthesisui use <slug> "<intent>"        print a ready-to-paste agent prompt to build/modify on-system
   synthesisui advise "<value prop>"        engagement-pattern proposals for this project (login required)
   synthesisui generate "<desc>"            generate a token-only component recipe for your DS (login required)
@@ -213,6 +215,16 @@ async function main() {
         version,
         artifactsOnly: flags["artifacts-only"] === true,
       });
+      break;
+    }
+    case "upgrade": {
+      const slug = args[0];
+      if (!slug) {
+        console.error("error: provide the slug - `synthesisui upgrade <slug>`");
+        process.exitCode = 1;
+        return;
+      }
+      await upgrade(slug, { registry, dir });
       break;
     }
     case "use": {
