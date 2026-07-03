@@ -2,6 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { generateComponentFiles } from "../component-codegen.js";
 import { readProjectConfig, resolveRegistry } from "../config.js";
+import { body, section, snippet } from "../output.js";
 import { fetchComponent, RegistryError } from "../registry.js";
 
 /** Slugs/names are kebab-case by contract; reject anything else before it ever
@@ -89,29 +90,83 @@ export async function component(
     );
   }
 
+  // ── DX: concrete paths + copy-pasteable snippets, with breathing room ──
+  const tailwind = config.styles === "tailwind";
+  const imports = tailwind
+    ? [
+        `@import "tailwindcss";`,
+        `@import "../_synthesisui/ds/${slug}/tokens.css";`,
+        `@import "../_synthesisui/ds/${slug}/theme.css";`,
+      ]
+    : [`@import "../_synthesisui/ds/${slug}/tokens.css";`];
+
+  console.log(section(`One-time setup (once per app, for "${slug}")`));
+  console.log(
+    body(
+      `1. Import the design system in your GLOBAL stylesheet, e.g. app/globals.css`,
+    ),
+  );
+  console.log(
+    body(`   (the path is relative to that file - hence the leading ../):`),
+  );
   console.log("");
-  console.log("Use it:");
+  console.log(snippet(imports));
+  console.log("");
   console.log(
-    `  • once per app: synthesisui add ${slug} (tokens.css${config.styles === "tailwind" ? " + theme.css" : ""}), import it globally,`,
+    body(
+      `2. Scope your app: add data-ds="${slug}" to a ROOT element, e.g. app/layout.tsx:`,
+    ),
   );
+  console.log("");
+  console.log(snippet([`<body data-ds="${slug}">{children}</body>`]));
+  console.log("");
   console.log(
-    `    and put data-ds="${slug}" on a root element (e.g. <body data-ds="${slug}">)`,
+    body(
+      `(If you haven't installed the system yet, run: synthesisui add ${slug})`,
+    ),
   );
+
+  console.log(section("Use it"));
   if (!opts.artifactsOnly && config.target === "next") {
     const pascalName = res.name
       .split(/[^a-zA-Z0-9]+/)
       .filter(Boolean)
       .map((p) => p[0].toUpperCase() + p.slice(1))
       .join("");
-    console.log(
-      `  • import { ${pascalName} } from "./${config.componentsDir}/${res.name}" and render <${pascalName} />`,
+    // Show a real variant in the example when the recipe has one.
+    const firstAxis = Object.entries(res.recipe.variants ?? {}).find(
+      ([, options]) =>
+        Object.values(options).some((block) => Object.keys(block).length > 0),
     );
+    const exampleProp = firstAxis
+      ? ` ${firstAxis[0]}="${Object.keys(firstAxis[1])[0]}"`
+      : "";
     console.log(
-      `  • or ask your agent: "use the ${pascalName} component from ${config.componentsDir}/${res.name} (SynthesisUI ${slug})"`,
+      snippet([
+        `import { ${pascalName} } from "@/${config.componentsDir}/${res.name}";`,
+        "",
+        `<${pascalName}${exampleProp} />`,
+      ]),
+    );
+    console.log("");
+    console.log(
+      body(`(adjust "@/" to your project's import alias if it differs)`),
+    );
+    console.log("");
+    console.log(body("Or ask your agent:"));
+    console.log(
+      snippet([
+        `"Use the ${pascalName} component from ${config.componentsDir}/${res.name} (SynthesisUI ${slug})."`,
+      ]),
     );
   } else {
     console.log(
-      `  • @import "_synthesisui/ds/${slug}/components/${res.name}.css" and use <div class="ds-${res.name}">…</div>`,
+      snippet([
+        `@import "../_synthesisui/ds/${slug}/components/${res.name}.css";`,
+        "",
+        `<div class="ds-${res.name}">…</div>`,
+      ]),
     );
   }
+  console.log("");
 }

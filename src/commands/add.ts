@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { syncClaudeMd } from "../claude-md.js";
 import { resolveRegistry } from "../config.js";
 import { buildGuide } from "../guide.js";
+import { body as line, section, snippet } from "../output.js";
 import { fetchDesignSystem } from "../registry.js";
 
 type AddOptions = {
@@ -169,26 +170,55 @@ export async function add(slug: string, opts: AddOptions): Promise<void> {
   console.log(
     `  CLAUDE.md ${claudeMd.created ? "created" : "updated"} (${claudeMd.count} system(s) installed)`,
   );
-  console.log("");
   const hasTheme = cssArtifacts.includes("theme.css");
-  console.log("Next steps:");
+
+  // ── DX: concrete paths + copy-pasteable snippets, with breathing room ──
+  console.log(section("One-time setup (once per app)"));
   console.log(
-    "  • In your global CSS, import the system (use a path relative to that CSS file -",
+    line(
+      "1. Import the system in your GLOBAL stylesheet, e.g. app/globals.css",
+    ),
   );
   console.log(
-    "    from `app/globals.css` in a Next App Router project that means a leading `../`):",
+    line("   (the path is relative to that file - hence the leading ../):"),
   );
-  console.log(`      @import "_synthesisui/ds/${payload.slug}/tokens.css";`);
-  if (hasTheme) {
-    console.log(
-      `      @import "_synthesisui/ds/${payload.slug}/theme.css";   /* Tailwind v4 utilities - required */`,
-    );
-    console.log(
-      '    (import `theme.css` after `tokens.css`, both after `@import "tailwindcss";`)',
-    );
-  }
-  console.log(`  • scope your UI with data-ds="${payload.slug}"`);
+  console.log("");
   console.log(
-    `  • details and rules in _synthesisui/ds/${payload.slug}/v${v}/GUIDE.md`,
+    snippet(
+      hasTheme
+        ? [
+            `@import "tailwindcss";`,
+            `@import "../_synthesisui/ds/${payload.slug}/tokens.css";`,
+            `@import "../_synthesisui/ds/${payload.slug}/theme.css";  /* Tailwind utilities on your tokens */`,
+          ]
+        : [`@import "../_synthesisui/ds/${payload.slug}/tokens.css";`],
+    ),
   );
+  console.log("");
+  console.log(
+    line(
+      `2. Scope your app: add data-ds="${payload.slug}" to a ROOT element, e.g. app/layout.tsx:`,
+    ),
+  );
+  console.log("");
+  console.log(snippet([`<body data-ds="${payload.slug}">{children}</body>`]));
+
+  console.log(section("Next"));
+  console.log(
+    line(
+      `synthesisui component ${payload.slug} button    bring a component in as YOUR code`,
+    ),
+  );
+  console.log(
+    line(
+      `synthesisui template ${payload.slug} landing    materialize a whole page`,
+    ),
+  );
+  console.log("");
+  console.log(
+    line(
+      `Guide for you and your agent: _synthesisui/ds/${payload.slug}/v${v}/GUIDE.md`,
+    ),
+  );
+  console.log("");
 }
