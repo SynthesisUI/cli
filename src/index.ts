@@ -6,6 +6,7 @@ import { generate } from "./commands/generate.js";
 import { init } from "./commands/init.js";
 import { list } from "./commands/list.js";
 import { login } from "./commands/login.js";
+import { refit } from "./commands/refit.js";
 import { template } from "./commands/template.js";
 import { upgrade } from "./commands/upgrade.js";
 import { use } from "./commands/use.js";
@@ -21,6 +22,7 @@ Usage:
   synthesisui template <slug> <name>       materialize a whole page from a DS template
   synthesisui component <slug> <name>      bring one component in - artifacts + YOUR <Pascal>.tsx in componentsDir
   synthesisui upgrade <slug>               update an installed DS + regenerate your components + migration brief
+  synthesisui refit <file> [--ds <slug>]   send an app component INTO your DS (token-only) and get it back as code
   synthesisui use <slug> "<intent>"        print a ready-to-paste agent prompt to build/modify on-system
   synthesisui advise "<value prop>"        engagement-pattern proposals for this project (login required)
   synthesisui generate "<desc>"            generate a token-only component recipe for your DS (login required)
@@ -36,6 +38,10 @@ Options:
   --components-dir <dir>  init: folder where components live (default: components)
   --styles <s>       init: component code flavor: css | tailwind (default: css)
   --artifacts-only   component: skip the .tsx materialization (recipe + css only)
+  --replace <name>   refit: replace an existing DS component (keeps its name)
+  --support <file>   refit: supporting CSS file (globals/vars the code references)
+  --instruction <s>  refit: extra guidance for the adaptation
+  --dry              refit: adapt and print, but save nothing
   --out <path>       output path for the generated template (default: <pagesDir>/<file>)
   -h, --help         this help
 
@@ -214,6 +220,28 @@ async function main() {
         dir,
         version,
         artifactsOnly: flags["artifacts-only"] === true,
+      });
+      break;
+    }
+    case "refit": {
+      const file = args[0];
+      if (!file) {
+        console.error(
+          "error: provide the component file - `synthesisui refit <file> [--ds <slug>]`",
+        );
+        process.exitCode = 1;
+        return;
+      }
+      await refit(file, {
+        registry,
+        dir,
+        ds: typeof flags.ds === "string" ? flags.ds : undefined,
+        name: typeof flags.name === "string" ? flags.name : undefined,
+        replace: typeof flags.replace === "string" ? flags.replace : undefined,
+        instruction:
+          typeof flags.instruction === "string" ? flags.instruction : undefined,
+        support: typeof flags.support === "string" ? flags.support : undefined,
+        dry: flags.dry === true,
       });
       break;
     }
