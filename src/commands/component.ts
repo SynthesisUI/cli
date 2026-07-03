@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { resolveRegistry } from "../config.js";
+import { generateComponentFiles } from "../component-codegen.js";
+import { readProjectConfig, resolveRegistry } from "../config.js";
 import { fetchComponent, RegistryError } from "../registry.js";
 
 /** Slugs/names are kebab-case by contract; reject anything else before it ever
@@ -13,14 +14,23 @@ type ComponentOptions = {
   dir?: string;
   /** Specific DS version (latest when omitted). */
   version?: number;
+  /** Skip the code materialization (write only recipe + css artifacts). */
+  artifactsOnly?: boolean;
 };
 
 /**
  * Brings ONE component from a design system into the project (granular "bring
- * specific", INS-18 fatia 3) - its recipe + compiled CSS, written under
- * `_synthesisui/ds/<slug>/components/`. Handy for a component you refit/created
- * on the platform. The component's styles reference the DS tokens, so the system
- * itself must be installed (`synthesisui add <slug>`) for `tokens.css` to resolve.
+ * specific", INS-18 fatia 3):
+ *
+ * 1. Artifacts (source of truth) → `_synthesisui/ds/<slug>/components/`:
+ *    the recipe (.json, for agents/tooling) + compiled CSS (.css).
+ * 2. YOUR component (unless --artifacts-only, target "next") →
+ *    `<componentsDir>/<name>/` from `_synthesisui/config.json`: a real
+ *    `export function <Pascal>()` with variants as typed props, in the
+ *    project's chosen flavor (`styles: "css" | "tailwind"`).
+ *
+ * The component's styles reference the DS tokens, so the system itself must be
+ * installed (`synthesisui add <slug>`) for `tokens.css`/`theme.css` to resolve.
  */
 export async function component(
   slug: string,
@@ -55,15 +65,53 @@ export async function component(
   console.log(
     `✓ ${res.name} → _synthesisui/ds/${slug}/components/${res.name}.{json,css}  (${slug} v${res.version})`,
   );
+
+  // 2. YOUR component - a real, importable `export function <Pascal>()` in the
+  //    project's flavor (config: styles css|tailwind), under componentsDir.
+  const config = await readProjectConfig(root);
+  if (!opts.artifactsOnly && config.target === "next") {
+    const compDir = join(root, config.componentsDir, res.name);
+    await mkdir(compDir, { recursive: true });
+    const files = generateComponentFiles(
+      slug,
+      res.name,
+      res.recipe,
+      res.css,
+      res.version,
+      config.styles,
+    );
+    for (const file of files) {
+      await writeFile(join(compDir, file.filename), file.code, "utf8");
+    }
+    const names = files.map((f) => f.filename).join(", ");
+    console.log(
+      `✓ ${config.componentsDir}/${res.name}/ → ${names}  (styles: ${config.styles})`,
+    );
+  }
+
   console.log("");
   console.log("Use it:");
   console.log(
-    `  • ensure the DS is installed: synthesisui add ${slug} (provides tokens.css)`,
+    `  • once per app: synthesisui add ${slug} (tokens.css${config.styles === "tailwind" ? " + theme.css" : ""}), import it globally,`,
   );
   console.log(
-    `  • @import "_synthesisui/ds/${slug}/components/${res.name}.css" in your CSS`,
+    `    and put data-ds="${slug}" on a root element (e.g. <body data-ds="${slug}">)`,
   );
-  console.log(
-    `  • <div data-ds="${slug}"><div class="ds-${res.name}">…</div></div>`,
-  );
+  if (!opts.artifactsOnly && config.target === "next") {
+    const pascalName = res.name
+      .split(/[^a-zA-Z0-9]+/)
+      .filter(Boolean)
+      .map((p) => p[0].toUpperCase() + p.slice(1))
+      .join("");
+    console.log(
+      `  • import { ${pascalName} } from "./${config.componentsDir}/${res.name}" and render <${pascalName} />`,
+    );
+    console.log(
+      `  • or ask your agent: "use the ${pascalName} component from ${config.componentsDir}/${res.name} (SynthesisUI ${slug})"`,
+    );
+  } else {
+    console.log(
+      `  • @import "_synthesisui/ds/${slug}/components/${res.name}.css" and use <div class="ds-${res.name}">…</div>`,
+    );
+  }
 }
