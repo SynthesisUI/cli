@@ -12,6 +12,9 @@ type AddOptions = {
   dir?: string;
   /** Specific version to install; latest when omitted. */
   version?: number;
+  /** Print the one-time setup + next-steps sections (default true; `upgrade`
+   *  suppresses them - the app is already wired). */
+  setupHints?: boolean;
 };
 
 /** Root pointer at `_synthesisui/ds/<slug>/.lock` - names the active version. */
@@ -170,6 +173,7 @@ export async function add(slug: string, opts: AddOptions): Promise<void> {
   console.log(
     `  CLAUDE.md ${claudeMd.created ? "created" : "updated"} (${claudeMd.count} system(s) installed)`,
   );
+  if (opts.setupHints === false) return;
   const hasTheme = cssArtifacts.includes("theme.css");
 
   // ── DX: concrete paths + copy-pasteable snippets, with breathing room ──
