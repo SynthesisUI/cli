@@ -1,4 +1,4 @@
-import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { access, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { basename, join } from "node:path";
 import { generateComponentFiles } from "../component-codegen.js";
 import { readProjectConfig, resolveRegistry } from "../config.js";
@@ -28,15 +28,36 @@ type RefitOptions = {
   dry?: boolean;
 };
 
-/** Slugs materialized under `_synthesisui/ds/` in the project. */
+/** Slugs INSTALLED under `_synthesisui/ds/` (a `.lock` marks a real install -
+ *  a folder holding only refit artifacts doesn't count). */
 async function installedSlugs(root: string): Promise<string[]> {
   try {
     const entries = await readdir(join(root, "_synthesisui", "ds"), {
       withFileTypes: true,
     });
-    return entries.filter((e) => e.isDirectory()).map((e) => e.name);
+    const slugs: string[] = [];
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      try {
+        await access(join(root, "_synthesisui", "ds", entry.name, ".lock"));
+        slugs.push(entry.name);
+      } catch {
+        // artifacts-only folder (e.g. a refit before `add`) - not installed
+      }
+    }
+    return slugs;
   } catch {
     return [];
+  }
+}
+
+/** True when the system is actually installed (tokens.css present). */
+async function isInstalled(root: string, slug: string): Promise<boolean> {
+  try {
+    await access(join(root, "_synthesisui", "ds", slug, ".lock"));
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -171,6 +192,23 @@ export async function refit(file: string, opts: RefitOptions): Promise<void> {
     materialized = true;
     console.log(
       `✓ ${config.componentsDir}/${res.name}/ → ${files.map((f) => f.filename).join(", ")}  (styles: ${config.styles})`,
+    );
+  }
+
+  // The materialized component references this system's tokens - without the
+  // install (tokens.css + scope) it renders unstyled. Say so, concretely.
+  if (!(await isInstalled(root, slug))) {
+    console.log(section("Heads up - system not installed here yet"));
+    console.log(
+      body(
+        `The component references "${slug}" tokens that this project doesn't have yet.`,
+      ),
+    );
+    console.log("");
+    console.log(snippet([`npx synthesisui add ${slug}`]));
+    console.log("");
+    console.log(
+      body("(then follow its one-time setup: global @import + data-ds scope)"),
     );
   }
 
