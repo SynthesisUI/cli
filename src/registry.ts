@@ -221,3 +221,88 @@ export async function fetchChangelog(
   }
   return (await res.json()) as ChangelogResponse;
 }
+
+/** Resposta do refit hospedado (`POST /api/ai/studio` com `source`). */
+export type RefitResponse = {
+  name: string;
+  recipe: import("./types.js").ComponentRecipe;
+  css: string;
+  suggestedRule?: string;
+  usage: { inputTokens: number; outputTokens: number };
+  model: string;
+  tries: number;
+};
+
+/**
+ * Refit hospedado (INS-18 / Marco B5): manda código de componente arbitrário e
+ * recebe a recipe token-only vestida no DS. Gated + metered server-side:
+ * 401 = sem login, 429 = cota diária.
+ */
+export async function postRefit(
+  base: string,
+  payload: {
+    slug: string;
+    source: string;
+    support?: string;
+    instruction?: string;
+    prior?: { name: string; recipe: unknown };
+  },
+): Promise<RefitResponse> {
+  let res: Response;
+  try {
+    res = await fetch(`${base}/api/ai/studio`, {
+      method: "POST",
+      headers: { "content-type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify(payload),
+    });
+  } catch {
+    throw new RegistryError(
+      `Could not reach the registry at ${base}. ` +
+        `Check the URL (--registry / SYNTHESISUI_REGISTRY_URL) and your connection.`,
+    );
+  }
+  if (res.status === 401) {
+    throw new RegistryError(
+      "Not authenticated. Run `synthesisui login` first.",
+    );
+  }
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { message?: string };
+    throw new RegistryError(body.message ?? `Refit responded ${res.status}.`);
+  }
+  return (await res.json()) as RefitResponse;
+}
+
+/**
+ * Persiste um componente no DS pessoal do usuário autenticado
+ * (`POST /api/ds/component`) - a metade "salvar" da ponte reversa. O servidor
+ * re-valida a recipe (token-only, sem refs órfãs) antes de gravar no rascunho.
+ */
+export async function postSaveComponent(
+  base: string,
+  payload: { slug: string; name: string; recipe: unknown },
+): Promise<{ slug: string; name: string; version: number }> {
+  let res: Response;
+  try {
+    res = await fetch(`${base}/api/ds/component`, {
+      method: "POST",
+      headers: { "content-type": "application/json", ...(await authHeaders()) },
+      body: JSON.stringify(payload),
+    });
+  } catch {
+    throw new RegistryError(
+      `Could not reach the registry at ${base}. ` +
+        `Check the URL (--registry / SYNTHESISUI_REGISTRY_URL) and your connection.`,
+    );
+  }
+  if (res.status === 401) {
+    throw new RegistryError(
+      "Not authenticated. Run `synthesisui login` first.",
+    );
+  }
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { message?: string };
+    throw new RegistryError(body.message ?? `Save responded ${res.status}.`);
+  }
+  return (await res.json()) as { slug: string; name: string; version: number };
+}
