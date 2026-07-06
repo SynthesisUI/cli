@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { add } from "./commands/add.js";
 import { advise } from "./commands/advise.js";
+import { clean } from "./commands/clean.js";
 import { component } from "./commands/component.js";
 import { generate } from "./commands/generate.js";
 import { init } from "./commands/init.js";
@@ -23,6 +24,7 @@ Usage - deterministic, FREE:
   synthesisui template <slug> <name>       materialize a whole page from a DS template
   synthesisui upgrade <slug>               update an installed DS + regenerate your components + migration brief
   synthesisui use <slug> "<intent>"        print a ready-to-paste agent prompt to build/modify on-system
+  synthesisui clean [--force]              strip create-next-app boilerplate (dry run without --force)
 
 Usage - AI, USES CREDITS (login required):
   synthesisui generate "<desc>"            AI-create a NEW component your DS doesn't have (token-only recipe)
@@ -44,6 +46,7 @@ Options:
   --support <file>   refit: supporting CSS file (globals/vars the code references)
   --instruction <s>  refit: extra guidance for the adaptation
   --dry              refit: adapt and print, but save nothing
+  --force            clean: apply the changes (without it, dry run)
   --out <path>       output path for the generated template (default: <pagesDir>/<file>)
   -h, --help         this help
 
@@ -270,6 +273,9 @@ async function main() {
       await use(slug, intent, { dir });
       break;
     }
+    case "clean":
+      await clean({ dir, force: flags.force === true });
+      break;
     case "advise": {
       const valueProp = args.join(" ").trim();
       if (!valueProp) {
