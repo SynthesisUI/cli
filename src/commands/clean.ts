@@ -79,10 +79,15 @@ export async function clean(opts: CleanOptions): Promise<void> {
     }
   }
 
-  // 2. Default landing page → minimal placeholder (only if unedited).
+  // 2. Default landing page → minimal placeholder (only if unedited). Match by
+  //    the `create-next-app` utm markers its links carry (stable across Next
+  //    versions) plus the boilerplate copy - so a newer scaffold isn't missed.
   const pagePath = join(appDir, "page.tsx");
   const pageSrc = await readIf(pagePath);
-  if (pageSrc && /Get started by editing|Deploy now|Read our docs/.test(pageSrc)) {
+  if (
+    pageSrc &&
+    /create-next-app|get started by editing|to get started, edit/i.test(pageSrc)
+  ) {
     actions.push({
       verb: "reset",
       path: rel(pagePath),
