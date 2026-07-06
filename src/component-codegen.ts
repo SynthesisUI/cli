@@ -198,7 +198,30 @@ const STATIC: Record<string, Record<string, string>> = {
   width: { "100%": "w-full" },
   height: { "100%": "h-full" },
   textDecoration: { none: "no-underline", underline: "underline" },
+  overflow: {
+    hidden: "overflow-hidden",
+    auto: "overflow-auto",
+    scroll: "overflow-scroll",
+    visible: "overflow-visible",
+    clip: "overflow-clip",
+  },
+  position: {
+    relative: "relative",
+    absolute: "absolute",
+    fixed: "fixed",
+    sticky: "sticky",
+    static: "static",
+  },
 };
+
+/** Fixed rem → Tailwind numeric scale step (0.25rem base), or null if not a
+ *  clean multiple. So `0.5rem` → `2` (h-2/w-2) instead of an arbitrary value. */
+function remToTwScale(value: string): string | null {
+  const m = value.trim().match(/^(\d*\.?\d+)rem$/);
+  if (!m) return null;
+  const n = Number.parseFloat(m[1]) / 0.25;
+  return Number.isInteger(n) && n >= 0 && n <= 96 ? String(n) : null;
+}
 
 /** One declaration → Tailwind classes (pretty when mappable, arbitrary-property
  *  otherwise - never dropped). */
@@ -274,6 +297,16 @@ function declToTailwind(prop: string, value: string): string[] {
       // scale's line-height via --text-<key>--line-height)
       if (/^\{typography\.scale\./.test(value)) return [];
       break;
+    case "height": {
+      const n = remToTwScale(value);
+      if (n) return [`h-${n}`];
+      break;
+    }
+    case "width": {
+      const n = remToTwScale(value);
+      if (n) return [`w-${n}`];
+      break;
+    }
   }
   return [arbitrary(prop, value)];
 }
@@ -323,6 +356,30 @@ function header(slug: string, name: string, version: number, mode: string) {
 const joinCls = (parts: string[]) =>
   `[${parts.join(", ")}].filter(Boolean).join(" ")`;
 
+/** JSDoc showing how to compose the component with its parts + content, so the
+ *  materialized code doesn't read as "a bare shell renders nothing" (dogfood
+ *  #5). Built from the recipe's parts. */
+function compositionHint(
+  comp: string,
+  name: string,
+  recipe: ComponentRecipe,
+): string {
+  const partNames = Object.keys(recipe.parts ?? {});
+  if (partNames.length === 0) {
+    return `/** Wears the "${name}" recipe. Put your content inside: <${comp}>…</${comp}>. */`;
+  }
+  const inner = partNames
+    .map((p) => ` *     <${comp}${pascal(p)}>…</${comp}${pascal(p)}>`)
+    .join("\n");
+  return `/**
+ * Compose it with its parts + your own content - a bare <${comp} /> is just the
+ * empty shell. For example:
+ *   <${comp}>
+${inner}
+ *   </${comp}>
+ */`;
+}
+
 function emitCssMode(
   slug: string,
   name: string,
@@ -365,6 +422,7 @@ import type { ComponentPropsWithoutRef } from "react";
 
 type ${comp}Props = ${propsType(axes, tag)};
 
+${compositionHint(comp, name, recipe)}
 export function ${comp}({ ${destructure} }: ${comp}Props) {
   return (
 ${rootJsx}
@@ -430,6 +488,7 @@ ${[...variantConsts, ...booleanConsts].join("\n")}
 
 type ${comp}Props = ${propsType(axes, tag)};
 
+${compositionHint(comp, name, recipe)}
 export function ${comp}({ ${destructure} }: ${comp}Props) {
   return (
     <${tag}${attrs}
