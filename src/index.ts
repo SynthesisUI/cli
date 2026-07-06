@@ -14,18 +14,20 @@ import { RegistryError } from "./registry.js";
 
 const HELP = `synthesisui - bring SynthesisUI design systems into your project
 
-Usage:
+Usage - deterministic, FREE:
   synthesisui login [options]              connect the CLI to your account (device-flow)
   synthesisui init [options]               write _synthesisui/config.json (target, dirs); --ds to bring one in
   synthesisui list [options]               list the published design systems
   synthesisui add <slug> [options]         materialize a DS into _synthesisui/ds/<slug>/
+  synthesisui component <slug> <name>      bring one EXISTING component in as YOUR <Pascal>.tsx
   synthesisui template <slug> <name>       materialize a whole page from a DS template
-  synthesisui component <slug> <name>      bring one component in - artifacts + YOUR <Pascal>.tsx in componentsDir
   synthesisui upgrade <slug>               update an installed DS + regenerate your components + migration brief
-  synthesisui refit <file> [--ds <slug>]   send an app component INTO your DS (token-only) and get it back as code
   synthesisui use <slug> "<intent>"        print a ready-to-paste agent prompt to build/modify on-system
-  synthesisui advise "<value prop>"        engagement-pattern proposals for this project (login required)
-  synthesisui generate "<desc>"            generate a token-only component recipe for your DS (login required)
+
+Usage - AI, USES CREDITS (login required):
+  synthesisui generate "<desc>"            AI-create a NEW component your DS doesn't have (token-only recipe)
+  synthesisui advise "<value prop>"        AI engagement-pattern proposals for this project
+  synthesisui refit <file> [--ds <slug>]   AI-adapt an app component INTO your DS, get it back as code
 
 Options:
   --registry <url>   registry URL (or env SYNTHESISUI_REGISTRY_URL)
