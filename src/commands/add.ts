@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { syncClaudeMd } from "../claude-md.js";
 import { resolveRegistry } from "../config.js";
+import { customFontFamilies, googleFontsHref } from "../fonts.js";
 import { buildGuide } from "../guide.js";
 import { body as line, section, snippet } from "../output.js";
 import { fetchDesignSystem } from "../registry.js";
@@ -206,6 +207,33 @@ export async function add(slug: string, opts: AddOptions): Promise<void> {
   );
   console.log("");
   console.log(snippet([`<body data-ds="${payload.slug}">{children}</body>`]));
+
+  // 3. Load the type - the DS ships token NAMES, not the fonts themselves.
+  //    Without this, display/body silently fall back and the identity is lost.
+  const families = payload.document.foundations.typography.families;
+  const fontsHref = googleFontsHref(families);
+  if (fontsHref) {
+    console.log("");
+    console.log(
+      line(
+        "3. Load the type - this system ships font NAMES, not the fonts. Add to your app's <head> (e.g. app/layout.tsx) so the families resolve (else they fall back and the look is lost):",
+      ),
+    );
+    console.log("");
+    console.log(
+      snippet([
+        `<link rel="preconnect" href="https://fonts.googleapis.com" />`,
+        `<link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />`,
+        `<link rel="stylesheet" href="${fontsHref}" />`,
+      ]),
+    );
+    console.log("");
+    console.log(
+      line(
+        `   Prefer next/font or self-hosting? Fine - just register these exact families: ${customFontFamilies(families).join(", ")}.`,
+      ),
+    );
+  }
 
   console.log(section("Next"));
   console.log(
