@@ -42,6 +42,7 @@ Options:
   --components-dir <dir>  init: folder where components live (default: components)
   --styles <s>       init: component code flavor: css | tailwind (default: css)
   --artifacts-only   component: skip the .tsx materialization (recipe + css only)
+  --interactive      component: materialize the rich/behaving variant (join-field, streak, xp-bar)
   --replace <name>   refit: replace an existing DS component (keeps its name)
   --support <file>   refit: supporting CSS file (globals/vars the code references)
   --instruction <s>  refit: extra guidance for the adaptation
@@ -225,6 +226,7 @@ async function main() {
         dir,
         version,
         artifactsOnly: flags["artifacts-only"] === true,
+        interactive: flags.interactive === true,
       });
       break;
     }

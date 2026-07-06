@@ -2,6 +2,10 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { generateComponentFiles } from "../component-codegen.js";
 import { readProjectConfig, resolveRegistry } from "../config.js";
+import {
+  hasInteractiveTemplate,
+  interactiveTemplate,
+} from "../interactive-templates.js";
 import { body, section, snippet } from "../output.js";
 import { fetchComponent, RegistryError } from "../registry.js";
 
@@ -17,6 +21,9 @@ type ComponentOptions = {
   version?: number;
   /** Skip the code materialization (write only recipe + css artifacts). */
   artifactsOnly?: boolean;
+  /** Materialize the rich/interactive variant (state + sample content) when the
+   *  component has a curated template, instead of the bare shell. */
+  interactive?: boolean;
 };
 
 /**
@@ -70,23 +77,47 @@ export async function component(
   // 2. YOUR component - a real, importable `export function <Pascal>()` in the
   //    project's flavor (config: styles css|tailwind), under componentsDir.
   const config = await readProjectConfig(root);
+  const wantInteractive =
+    opts.interactive && hasInteractiveTemplate(res.name);
   if (!opts.artifactsOnly && config.target === "next") {
     const compDir = join(root, config.componentsDir, res.name);
     await mkdir(compDir, { recursive: true });
-    const files = generateComponentFiles(
-      slug,
-      res.name,
-      res.recipe,
-      res.css,
-      res.version,
-      config.styles,
-    );
-    for (const file of files) {
-      await writeFile(join(compDir, file.filename), file.code, "utf8");
+
+    let filenames: string[];
+    if (wantInteractive) {
+      // Curated interactive variant: the behaving .tsx + the compiled classes
+      // it wears (.css) + the barrel. Ignores the css|tailwind flavor - the
+      // template drives itself off the .ds-* classes.
+      const tsx = interactiveTemplate(res.name) as string;
+      await writeFile(join(compDir, `${res.name}.tsx`), tsx, "utf8");
+      await writeFile(join(compDir, `${res.name}.css`), `${res.css}\n`, "utf8");
+      await writeFile(
+        join(compDir, "index.ts"),
+        `export * from "./${res.name}";\n`,
+        "utf8",
+      );
+      filenames = [`${res.name}.tsx`, `${res.name}.css`, "index.ts"];
+    } else {
+      const files = generateComponentFiles(
+        slug,
+        res.name,
+        res.recipe,
+        res.css,
+        res.version,
+        config.styles,
+      );
+      for (const file of files) {
+        await writeFile(join(compDir, file.filename), file.code, "utf8");
+      }
+      filenames = files.map((f) => f.filename);
     }
-    const names = files.map((f) => f.filename).join(", ");
+    const flavor = wantInteractive ? "interactive" : `styles: ${config.styles}`;
     console.log(
-      `✓ ${config.componentsDir}/${res.name}/ → ${names}  (styles: ${config.styles})`,
+      `✓ ${config.componentsDir}/${res.name}/ → ${filenames.join(", ")}  (${flavor})`,
+    );
+  } else if (opts.interactive && !hasInteractiveTemplate(res.name)) {
+    console.log(
+      `  note: no interactive template for "${res.name}" - materialized the standard shell.`,
     );
   }
 
