@@ -1,6 +1,6 @@
 {
   "name": "synthesisui",
-  "version": "0.4.6",
+  "version": "0.4.7",
   "description": "Traz design systems do SynthesisUI para qualquer projeto (materializa em _local/ds/).",
   "type": "module",
   "bin": {

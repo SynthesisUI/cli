@@ -38,9 +38,12 @@ export async function template(
   const generated = await fetchTemplate(base, slug, name, target, opts.version);
 
   // --out targets the page (1st file); sibling files (e.g. the CSS) land in the
-  // same directory. Without --out, everything goes under <pagesDir>.
+  // same directory. Without --out, everything goes under templates/<name>/ -
+  // a loose landing.tsx at the app/ root read as a route without being one,
+  // and a second template turned the app dir into soup.
   const [pageFile, ...siblings] = generated.files;
-  const pageRel = opts.out ?? join(config.pagesDir, pageFile.filename);
+  const defaultDir = join("templates", name);
+  const pageRel = opts.out ?? join(defaultDir, pageFile.filename);
   const pageDir = dirname(join(root, pageRel));
 
   await mkdir(pageDir, { recursive: true });
@@ -48,15 +51,19 @@ export async function template(
   console.log(`✓ wrote ${pageRel}  (${slug} v${generated.version})`);
 
   for (const f of siblings) {
-    const rel = opts.out
-      ? join(dirname(pageRel), f.filename)
-      : join(config.pagesDir, f.filename);
+    const rel = join(dirname(pageRel), f.filename);
     await writeFile(join(root, rel), f.code, "utf8");
     console.log(`✓ wrote ${rel}`);
   }
 
   console.log("");
   console.log("Next steps:");
+  console.log(
+    `  • use it in a route, e.g. ${join(config.pagesDir, "page.tsx")}:`,
+  );
+  console.log(
+    `      import Page from "@/${defaultDir.replace(/\\/g, "/")}/${pageFile.filename.replace(/\.tsx$/, "")}";`,
+  );
   console.log(
     `  • ensure the DS is installed: synthesisui add ${slug} (provides tokens.css)`,
   );
