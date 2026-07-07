@@ -1,8 +1,12 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { syncClaudeMd } from "../claude-md.js";
-import { resolveRegistry } from "../config.js";
-import { customFontFamilies, googleFontsHref } from "../fonts.js";
+import { readProjectConfig, resolveRegistry } from "../config.js";
+import {
+  customFontFamilies,
+  googleFontsHref,
+  nextFontSnippet,
+} from "../fonts.js";
 import { buildGuide } from "../guide.js";
 import { body as line, section, snippet } from "../output.js";
 import { fetchDesignSystem } from "../registry.js";
@@ -209,10 +213,38 @@ export async function add(slug: string, opts: AddOptions): Promise<void> {
   console.log(snippet([`<body data-ds="${payload.slug}">{children}</body>`]));
 
   // 3. Load the type - the DS ships token NAMES, not the fonts themselves.
-  //    Without this, display/body silently fall back and the identity is lost.
+  //    Next apps get the next/font recipe (self-hosted + preloaded + adjusted
+  //    fallback = no FOUT "blink" on refresh); the Google Fonts <link> stays
+  //    as the framework-agnostic path.
   const families = payload.document.foundations.typography.families;
   const fontsHref = googleFontsHref(families);
-  if (fontsHref) {
+  const projectConfig = await readProjectConfig(projectRoot);
+  const nextFonts =
+    projectConfig.target === "next"
+      ? nextFontSnippet(families, payload.slug)
+      : null;
+  if (nextFonts) {
+    console.log("");
+    console.log(
+      line(
+        "3. Load the type via next/font (recommended: self-hosted, preloaded, no font flash on refresh). Three small blocks:",
+      ),
+    );
+    console.log("");
+    console.log(snippet(nextFonts.fontsFile));
+    console.log("");
+    console.log(snippet(nextFonts.layout));
+    console.log("");
+    console.log(snippet(nextFonts.css));
+    if (fontsHref) {
+      console.log("");
+      console.log(
+        line(
+          `   Quick alternative (works anywhere, may flash on cold loads): <link rel="stylesheet" href="${fontsHref}" /> in the <head>.`,
+        ),
+      );
+    }
+  } else if (fontsHref) {
     console.log("");
     console.log(
       line(
