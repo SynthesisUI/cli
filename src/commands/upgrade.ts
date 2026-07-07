@@ -2,6 +2,10 @@ import { readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { generateComponentFiles } from "../component-codegen.js";
 import { readProjectConfig, resolveRegistry } from "../config.js";
+import {
+  diffLocalDocuments,
+  localChangelogMarkdown,
+} from "../document-diff.js";
 import { body, section, snippet } from "../output.js";
 import {
   fetchChangelog,
@@ -117,11 +121,38 @@ export async function upgrade(
     }
   }
 
-  // 3. deterministic changelog → UPGRADE.md (the agent's migration brief)
-  const log = await fetchChangelog(base, slug, installed, latest.version);
+  // 3. deterministic changelog → UPGRADE.md (the agent's migration brief).
+  //    Diffed against the LOCALLY installed snapshot: personal systems mutate
+  //    their working draft in place under a version number, so the server's
+  //    vN may have moved since this app installed it ("draft drift") - a
+  //    server-side history diff can be empty while this app's files differ.
+  //    Fallback to the server changelog if the local snapshot is unreadable.
+  let markdown: string;
+  let breaking: string[];
+  try {
+    const beforeDoc = JSON.parse(
+      await readFile(
+        join(slugDir, `v${installed}`, "design-system.json"),
+        "utf8",
+      ),
+    ) as Record<string, unknown>;
+    const afterDoc = JSON.parse(
+      await readFile(
+        join(slugDir, `v${latest.version}`, "design-system.json"),
+        "utf8",
+      ),
+    ) as Record<string, unknown>;
+    const local = diffLocalDocuments(beforeDoc, afterDoc);
+    markdown = localChangelogMarkdown(slug, installed, latest.version, local);
+    breaking = local.breaking;
+  } catch {
+    const log = await fetchChangelog(base, slug, installed, latest.version);
+    markdown = log.markdown;
+    breaking = log.changelog.breaking;
+  }
   const upgradePath = join(slugDir, "UPGRADE.md");
   const brief = [
-    log.markdown,
+    markdown,
     "",
     "---",
     "",
@@ -143,10 +174,10 @@ export async function upgrade(
 
   // ── report ──
   console.log(section(`Upgraded ${slug}: v${installed} → v${latest.version}`));
-  if (log.changelog.breaking.length > 0) {
-    console.log(body(`Breaking changes (${log.changelog.breaking.length}):`));
+  if (breaking.length > 0) {
+    console.log(body(`Breaking changes (${breaking.length}):`));
     console.log("");
-    console.log(snippet(log.changelog.breaking.map((item) => `- ${item}`)));
+    console.log(snippet(breaking.map((item) => `- ${item}`)));
   } else {
     console.log(body("No breaking changes detected."));
   }
