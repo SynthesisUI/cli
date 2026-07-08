@@ -61,6 +61,7 @@ export function googleFontsHref(families: Families): string | null {
 export function nextFontSnippet(
   families: Families,
   slug: string,
+  appDir = "app",
 ): { fontsFile: string[]; layout: string[]; css: string[] } | null {
   const roles = (["display", "body", "mono"] as const).filter((role) => {
     const name = families[role]?.trim();
@@ -87,7 +88,7 @@ export function nextFontSnippet(
   }
 
   const fontsFile = [
-    `// app/fonts.ts`,
+    `// ${appDir}/fonts.ts`,
     `import { ${importNames.join(", ")} } from "next/font/google";`,
     ...consts,
   ];
@@ -96,12 +97,12 @@ export function nextFontSnippet(
     return `--font-ds-${seen.get(name)}`;
   };
   const layout = [
-    `// app/layout.tsx`,
+    `// ${appDir}/layout.tsx`,
     `import { ${[...new Set(roles.map((r) => seen.get((families[r] as string).trim())))].join(", ")} } from "./fonts";`,
     `<body data-ds="${slug}" className={\`${[...new Set(roles.map((r) => `\${${seen.get((families[r] as string).trim())}.variable}`))].join(" ")}\`}>`,
   ];
   const css = [
-    `/* app/globals.css - AFTER the tokens.css import */`,
+    `/* ${appDir}/globals.css - AFTER the tokens.css import */`,
     `[data-ds="${slug}"] {`,
     ...roles.map(
       (role) => `  --ds-typography-families-${role}: var(${roleVar(role)});`,
