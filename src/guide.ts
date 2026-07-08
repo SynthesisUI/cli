@@ -1,3 +1,4 @@
+import { nextFontSnippet } from "./fonts.js";
 import type { ComponentRecipe, RegistryPayload } from "./types.js";
 
 const kebab = (v: string) =>
@@ -87,6 +88,7 @@ export function buildGuide(payload: RegistryPayload): string {
           .map((n) => `family=${n.replace(/ /g, "+")}:wght@400;500;600;700`)
           .join("&")}&display=swap`
       : null;
+  const nextFonts = nextFontSnippet(foundations.typography.families, slug);
   const fontsSection = fontsHref
     ? `
 ## Fonts
@@ -94,15 +96,31 @@ export function buildGuide(payload: RegistryPayload): string {
 This system's type relies on ${list(fontFamilies)} - **the DS ships token names, not the
 fonts themselves.** If you don't load them they fall back to a generic family and the system loses
 its typographic identity. Load them once (any one approach):
-
-- **Google Fonts** - drop in your \`<head>\` (or root layout):
+${
+  nextFonts
+    ? `
+- **Next.js (recommended)** - \`next/font\` self-hosts the families (preloaded, size-adjusted
+  fallbacks - no font flash on refresh). Three small blocks:
+  \`\`\`ts
+${nextFonts.fontsFile.map((l) => `  ${l}`).join("\n")}
+  \`\`\`
+  \`\`\`tsx
+${nextFonts.layout.map((l) => `  ${l}`).join("\n")}
+  \`\`\`
+  \`\`\`css
+${nextFonts.css.map((l) => `  ${l}`).join("\n")}
+  \`\`\``
+    : ""
+}
+- **Anywhere else** - Google Fonts \`<link>\` in the \`<head>\` (works everywhere, may flash on
+  cold loads):
   \`\`\`html
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="${fontsHref}" />
   \`\`\`
-- **Next.js** (\`next/font/google\`), **Fontsource**, or self-hosted \`@font-face\` work too - just
-  register the families above. If a family isn't on Google Fonts, self-host it.
+- **Fontsource** or self-hosted \`@font-face\` work too - just register the families above.
+  If a family isn't on Google Fonts, self-host it.
 
 ---
 `
