@@ -77,8 +77,7 @@ export async function component(
   // 2. YOUR component - a real, importable `export function <Pascal>()` in the
   //    project's flavor (config: styles css|tailwind), under componentsDir.
   const config = await readProjectConfig(root);
-  const wantInteractive =
-    opts.interactive && hasInteractiveTemplate(res.name);
+  const wantInteractive = opts.interactive && hasInteractiveTemplate(res.name);
   if (!opts.artifactsOnly && config.target === "next") {
     const compDir = join(root, config.componentsDir, res.name);
     await mkdir(compDir, { recursive: true });

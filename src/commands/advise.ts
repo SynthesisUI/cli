@@ -28,7 +28,8 @@ async function installedBlocks(root: string): Promise<string[]> {
   for (const slug of slugs) {
     try {
       const lockRaw = await readFile(join(dsRoot, slug, ".lock"), "utf8");
-      const version = (JSON.parse(lockRaw) as { version?: number }).version ?? 1;
+      const version =
+        (JSON.parse(lockRaw) as { version?: number }).version ?? 1;
       const docRaw = await readFile(
         join(dsRoot, slug, `v${version}`, "design-system.json"),
         "utf8",

@@ -77,11 +77,13 @@ export async function fetchTemplate(
   template: string,
   target: "next" | "general",
   version?: number,
+  as_?: string,
 ): Promise<GeneratedPage> {
   const url = new URL(`${base}/api/registry/ds/${encodeURIComponent(slug)}`);
   url.searchParams.set("template", template);
   url.searchParams.set("target", target);
   if (version != null) url.searchParams.set("version", String(version));
+  if (as_) url.searchParams.set("as", as_);
 
   const res = await request(url.toString());
   if (res.status === 404) {

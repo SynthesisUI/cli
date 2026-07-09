@@ -22,6 +22,7 @@ Usage - deterministic, FREE:
   synthesisui add <slug> [options]         materialize a DS into _synthesisui/ds/<slug>/
   synthesisui component <slug> <name>      bring one EXISTING component in as YOUR <Pascal>.tsx
   synthesisui template <slug> <name>       materialize a whole page from a DS template
+                                           (--as landing-home names the output - multi-page safe)
   synthesisui upgrade <slug>               update an installed DS + regenerate your components + migration brief
   synthesisui use <slug> "<intent>"        print a ready-to-paste agent prompt to build/modify on-system
   synthesisui clean [--force]              strip create-next-app boilerplate (dry run without --force)
@@ -197,7 +198,15 @@ async function main() {
       const target =
         typeof flags.target === "string" ? flags.target : undefined;
       const out = typeof flags.out === "string" ? flags.out : undefined;
-      await template(slug, name, { registry, dir, out, target, version });
+      const as_ = typeof flags.as === "string" ? flags.as : undefined;
+      await template(slug, name, {
+        registry,
+        dir,
+        out,
+        target,
+        version,
+        as: as_,
+      });
       break;
     }
     case "component": {

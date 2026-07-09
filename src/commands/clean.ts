@@ -121,7 +121,11 @@ export async function clean(opts: CleanOptions): Promise<void> {
   // 4. Default README.
   const readmePath = join(root, "README.md");
   const readmeSrc = await readIf(readmePath);
-  if (readmeSrc && /create-next-app/.test(readmeSrc) && /Getting Started/.test(readmeSrc)) {
+  if (
+    readmeSrc &&
+    /create-next-app/.test(readmeSrc) &&
+    /Getting Started/.test(readmeSrc)
+  ) {
     actions.push({
       verb: "remove",
       path: "README.md",

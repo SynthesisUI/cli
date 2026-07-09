@@ -10,6 +10,8 @@ type TemplateOptions = {
   out?: string;
   /** Override the framework target (defaults to the project config). */
   target?: string;
+  /** Output name (multi-page: "landing-home" won't clobber another landing). */
+  as?: string;
   /** Specific DS version (latest when omitted). */
   version?: number;
 };
@@ -34,15 +36,26 @@ export async function template(
       ? opts.target
       : config.target;
 
-  console.log(`→ generating "${name}" from "${slug}" (${target}) …`);
-  const generated = await fetchTemplate(base, slug, name, target, opts.version);
+  const asName =
+    opts.as && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(opts.as) ? opts.as : undefined;
+  console.log(
+    `→ generating "${name}"${asName ? ` as "${asName}"` : ""} from "${slug}" (${target}) …`,
+  );
+  const generated = await fetchTemplate(
+    base,
+    slug,
+    name,
+    target,
+    opts.version,
+    asName,
+  );
 
   // --out targets the page (1st file); sibling files (e.g. the CSS) land in the
   // same directory. Without --out, everything goes under templates/<name>/ -
   // a loose landing.tsx at the app/ root read as a route without being one,
   // and a second template turned the app dir into soup.
   const [pageFile, ...siblings] = generated.files;
-  const defaultDir = join("templates", name);
+  const defaultDir = join("templates", asName ?? name);
   const pageRel = opts.out ?? join(defaultDir, pageFile.filename);
   const pageDir = dirname(join(root, pageRel));
 

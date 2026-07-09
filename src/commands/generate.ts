@@ -122,8 +122,12 @@ export async function generate(
   console.log("Use it:");
   if (materialized) {
     const comp = pascalName(res.name);
-    console.log(`  • import { ${comp} } from "@/${config.componentsDir}/${res.name}";`);
-    console.log(`  • <${comp} /> - compose its parts + content (see the recipe)`);
+    console.log(
+      `  • import { ${comp} } from "@/${config.componentsDir}/${res.name}";`,
+    );
+    console.log(
+      `  • <${comp} /> - compose its parts + content (see the recipe)`,
+    );
   } else {
     console.log(
       `  • @import "_synthesisui/ds/${slug}/generated/${res.name}.css" in your CSS`,
