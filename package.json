@@ -1,7 +1,7 @@
 {
   "name": "synthesisui",
-  "version": "0.4.11",
-  "description": "Traz design systems do SynthesisUI para qualquer projeto (materializa em _local/ds/).",
+  "version": "0.4.12",
+  "description": "Bring SynthesisUI design systems into any project - tokens, typed components, whole pages and an agent-ready CLAUDE.md manifest.",
   "type": "module",
   "bin": {
     "synthesisui": "dist/index.js"
@@ -19,11 +19,10 @@
   "homepage": "https://www.synthesisui.com",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SynthesisUI/synthesisui-hub.git",
-    "directory": "packages/cli"
+    "url": "git+https://github.com/SynthesisUI/cli.git"
   },
   "bugs": {
-    "url": "https://github.com/SynthesisUI/synthesisui-hub/issues"
+    "url": "https://github.com/SynthesisUI/cli/issues"
   },
   "author": "SynthesisUI",
   "engines": {

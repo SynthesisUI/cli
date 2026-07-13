@@ -1,48 +1,67 @@
 # synthesisui
 
-CLI to bring design systems published on [SynthesisUI](https://www.synthesisui.com)
-into any project. It materializes the system into `_synthesisui/ds/<slug>/` and injects
-a managed block into the root `CLAUDE.md`, so Claude Code builds components following the
-design system.
+The CLI for [SynthesisUI](https://www.synthesisui.com) - where your design
+system is born, scored against the classic design canon, and delivered to any
+coding agent.
 
-## Usage
+Your AI writes UI. This gives it a design system to write it in: tokens, typed
+components, whole pages and a `CLAUDE.md` manifest that Claude Code, Cursor,
+Copilot or any coding agent reads before writing a single line.
 
-Without installing anything:
+> This repository is a **read-only mirror** of `packages/cli` in the SynthesisUI
+> monorepo, published so you can audit exactly what runs in your repo.
+> Issues and bug reports are very welcome here; pull requests can't land on a
+> mirror - open an issue instead.
 
-```bash
-npx synthesisui login        # connect the CLI to your account (device-flow in the browser)
-npx synthesisui list         # list the available design systems
-npx synthesisui add <slug>   # bring a DS into _synthesisui/ds/<slug>/
-```
-
-Or install globally:
+## Quickstart
 
 ```bash
-npm install -g synthesisui
-synthesisui add halogen
+npx synthesisui@latest init --styles tailwind --ds <slug>
 ```
 
-### What `add` materializes
+Pick any system from the [gallery](https://www.synthesisui.com) - or create
+your own in two minutes.
 
-In `_synthesisui/ds/<slug>/`:
+## Commands
 
-- `design-system.json` — the canonical source of truth of the design system
-- `tokens.css` — CSS custom properties scoped by `data-ds`
-- `theme.css` — optional Tailwind v4 `@theme` adapter (use `bg-primary`, `p-md`, … backed by the tokens)
-- `GUIDE.md` — instructions for the agent (semantic roles, mood, recipes, how to add components)
-- `.lock` — pinned slug + version (reproducible)
+| Command | What it does |
+| --- | --- |
+| `init` | One-shot setup: materialize a system + wire your project for it |
+| `login` | Connect to your account (device-flow in the browser) |
+| `list` | List the design systems available to you |
+| `add <slug>` | Materialize a system into `_synthesisui/ds/<slug>/` |
+| `use <slug>` | Generate the agent prompt to apply the system to your app |
+| `component <slug> <name>` | Bring one typed component into your components dir |
+| `template <slug> <name>` | Generate a whole page (landing, dashboard, onboarding…) |
+| `generate` | Generate a page from a saved guide structure |
+| `advise` | Grounded design advice for this repo, from your system's rules |
+| `refit <file>` | Send an app component back into your design system |
+| `upgrade <slug>` | Diff your `.lock` against the latest version and migrate |
+| `clean` | Remove materialized files and the managed CLAUDE.md block |
 
-And it injects an idempotent `<!-- synthesisui:start/end -->` block into the root `CLAUDE.md`,
-reflecting every installed DS.
+## What `add` materializes
+
+Inside `_synthesisui/ds/<slug>/`:
+
+- `design-system.json` - the canonical source of truth
+- `tokens.css` - CSS custom properties scoped by `data-ds`
+- `theme.css` - optional Tailwind v4 `@theme` adapter (`bg-primary`, `p-md`, …)
+- `GUIDE.md` - agent instructions: semantic roles, mood, recipes
+- `rules.md` - the governance your agent must follow
+- `.lock` - pinned slug + version (reproducible upgrades)
+
+Plus an idempotent `<!-- synthesisui:start/end -->` block in your root
+`CLAUDE.md` listing every installed system and its component manifest.
 
 ## Authentication
 
-`synthesisui login` uses device-flow (RFC 8628): it opens the browser, you confirm a code,
-and the token is saved to `~/.synthesisui/credentials.json` (per machine). Logout = delete that file.
+`synthesisui login` uses device-flow (RFC 8628): it opens the browser, you
+confirm a code, and the token lands in `~/.synthesisui/credentials.json`
+(per machine, chmod 600). Logout = delete that file.
 
 ## Registry
 
-By default it points to `https://www.synthesisui.com`. Override it with:
+Defaults to `https://www.synthesisui.com`. Override with:
 
 ```bash
 synthesisui list --registry http://localhost:3000
