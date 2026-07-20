@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { release } from "node:os";
 import { resolveRegistry, writeToken } from "../config.js";
 import { RegistryError } from "../registry.js";
 
@@ -7,6 +8,12 @@ const GRANT_TYPE = "urn:ietf:params:oauth:grant-type:device_code";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+/** True inside WSL, where xdg-open usually does nothing - the Windows host
+ *  must open the browser instead. */
+function isWsl(): boolean {
+  return process.platform === "linux" && /microsoft/i.test(release());
+}
+
 /** Tries to open the OS browser; silent if it fails. */
 function openBrowser(url: string) {
   const [cmd, args] =
@@ -14,7 +21,9 @@ function openBrowser(url: string) {
       ? ["open", [url]]
       : process.platform === "win32"
         ? ["cmd", ["/c", "start", "", url]]
-        : ["xdg-open", [url]];
+        : isWsl()
+          ? ["powershell.exe", ["-NoProfile", "Start-Process", `"${url}"`]]
+          : ["xdg-open", [url]];
   try {
     const child = spawn(cmd as string, args as string[], {
       stdio: "ignore",
@@ -56,9 +65,12 @@ export async function login(opts: { registry?: string }): Promise<void> {
   }
   const code = (await codeRes.json()) as DeviceCode;
 
+  // The manual path prints the COMPLETE url (code embedded) - on machines
+  // where the browser cannot auto-open (WSL, ssh, containers) the user
+  // copies ONE link and lands with the code pre-filled, Vercel-style.
   console.log("\nTo connect the CLI to your account:");
-  console.log(`  1. open: ${code.verification_uri}`);
-  console.log(`  2. confirm the code: ${code.user_code}\n`);
+  console.log(`  1. open: ${code.verification_uri_complete}`);
+  console.log(`  2. it should show the code: ${code.user_code} - confirm.\n`);
   console.log("(trying to open the browser…)");
   openBrowser(code.verification_uri_complete);
 

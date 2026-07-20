@@ -1,6 +1,6 @@
 {
   "name": "synthesisui",
-  "version": "0.4.12",
+  "version": "0.4.13",
   "description": "Bring SynthesisUI design systems into any project - tokens, typed components, whole pages and an agent-ready CLAUDE.md manifest.",
   "type": "module",
   "bin": {
